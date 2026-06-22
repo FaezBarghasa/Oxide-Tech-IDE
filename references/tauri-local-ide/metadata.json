@@ -1,0 +1,6 @@
+{
+  "name": "Tauri Local IDE",
+  "description": "Tauri desktop application frontend for embedded Rust development, integrated with Actix-web backend and tree-sitter AST visualization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

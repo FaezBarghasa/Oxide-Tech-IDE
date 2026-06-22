@@ -1,0 +1,6 @@
+{
+  "name": "NexusIDE",
+  "description": "An interactive IntelliJ-inspired developer workspace with a Project Tree, code editor, problems compiler outputs, and a smart Gemini Agent chat panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
