@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Send, Bot, User, CheckSquare, Sparkles, RefreshCw } from 'lucide-react';
 import { cn } from '../../utils/theme';
 import { useSettingsStore } from '../../state/settingsStore';
+import { callModelAPI } from '../../utils/aiClient';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -17,7 +18,7 @@ interface TaskBoardItem {
 
 export function AIChatPanel() {
   const [activeSubTab, setActiveSubTab] = useState<'chat' | 'tasks'>('chat');
-  const { apiKey } = useSettingsStore();
+  const { apiKey, apiProvider, apiEndpoint, apiModel } = useSettingsStore();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -52,29 +53,9 @@ export function AIChatPanel() {
 
     setMessages(prev => [...prev, userMessageObj]);
 
-    if (apiKey) {
-      // Real Gemini API Call
+    if (apiKey || apiProvider === 'custom') {
       try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: userMsg }] }]
-            })
-          }
-        );
-        const data = await response.json();
-        let responseContent = '';
-        if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-          responseContent = data.candidates[0].content.parts[0].text;
-        } else {
-          throw new Error(data.error?.message || "Invalid API response structure");
-        }
-        
+        const responseContent = await callModelAPI(userMsg, apiProvider, apiKey, apiEndpoint, apiModel);
         setMessages(prev => [
           ...prev,
           {
@@ -88,7 +69,7 @@ export function AIChatPanel() {
           ...prev,
           {
             role: 'assistant',
-            content: `Error calling Gemini API: ${err.message || err}. Please verify your API key in Settings.`,
+            content: `Error calling AI API: ${err.message || err}. Please verify your configurations in Settings.`,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }
         ]);

@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export type ActiveOverlayType = 'omnibar' | 'harpoon' | 'prompt' | 'transient' | 'settings' | null;
 export type TransientViewType = 'rest' | 'serial' | 'mqtt' | 'extensions' | 'skills' | 'mcp' | 'previews' | null;
+export type ApiProviderType = 'gemini' | 'openai' | 'anthropic' | 'custom';
 
 interface SettingsStoreState {
   theme: 'dark' | 'light';
@@ -13,6 +14,9 @@ interface SettingsStoreState {
   transientView: TransientViewType;
   apiKey: string | null;
   vimMode: boolean;
+  apiProvider: ApiProviderType;
+  apiEndpoint: string | null;
+  apiModel: string | null;
   
   setTheme: (theme: 'dark' | 'light') => void;
   setFontSize: (size: number) => void;
@@ -23,6 +27,9 @@ interface SettingsStoreState {
   setTransientView: (view: TransientViewType) => void;
   setApiKey: (key: string | null) => void;
   toggleVimMode: () => void;
+  setApiProvider: (provider: ApiProviderType) => void;
+  setApiEndpoint: (endpoint: string | null) => void;
+  setApiModel: (model: string | null) => void;
 }
 
 export const useSettingsStore = create<SettingsStoreState>()(
@@ -36,6 +43,9 @@ export const useSettingsStore = create<SettingsStoreState>()(
       transientView: null,
       apiKey: null,
       vimMode: false,
+      apiProvider: 'gemini',
+      apiEndpoint: null,
+      apiModel: null,
       
       setTheme: (theme) => set({ theme }),
       setFontSize: (fontSize) => set({ fontSize }),
@@ -45,7 +55,10 @@ export const useSettingsStore = create<SettingsStoreState>()(
       setActiveOverlay: (activeOverlay) => set({ activeOverlay }),
       setTransientView: (transientView) => set({ transientView }),
       setApiKey: (apiKey) => set({ apiKey }),
-      toggleVimMode: () => set((state) => ({ vimMode: !state.vimMode }))
+      toggleVimMode: () => set((state) => ({ vimMode: !state.vimMode })),
+      setApiProvider: (apiProvider) => set({ apiProvider }),
+      setApiEndpoint: (apiEndpoint) => set({ apiEndpoint }),
+      setApiModel: (apiModel) => set({ apiModel })
     }),
     { name: 'tauri-coder-settings' }
   )

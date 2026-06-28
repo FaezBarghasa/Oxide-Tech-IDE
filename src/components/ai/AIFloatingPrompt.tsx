@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as monaco from 'monaco-editor';
 import { useEditorStore } from '../../state/editorStore';
 import { useSettingsStore } from '../../state/settingsStore';
+import { callModelAPI } from '../../utils/aiClient';
 import { Sparkles, CornerDownLeft, X } from 'lucide-react';
 
 interface AIFloatingPromptProps {
@@ -20,7 +21,7 @@ export function AIFloatingPrompt({ editor, onClose }: AIFloatingPromptProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   
   const { currentFile, addReviewComment } = useEditorStore();
-  const { setActiveOverlay, apiKey } = useSettingsStore();
+  const { setActiveOverlay, apiKey, apiProvider, apiEndpoint, apiModel } = useSettingsStore();
 
   useEffect(() => {
     if (!editor) return;
@@ -72,7 +73,7 @@ export function AIFloatingPrompt({ editor, onClose }: AIFloatingPromptProps) {
       }
     }
 
-    if (apiKey) {
+    if (apiKey || apiProvider === 'custom') {
       try {
         const systemPrompt = `You are an AI coding assistant. The user wants to modify/refactor a code segment in file '${currentFile}'.
 User request: "${promptText}"
@@ -84,34 +85,18 @@ ${originalText}
 
 Return ONLY the modified code segment that should replace the block above. Do not enclose the code in markdown code blocks (\`\`\`). Do not add explanations or commentary. Just output the replacement code directly.`;
 
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: systemPrompt }] }]
-            })
-          }
-        );
-        const data = await response.json();
-        if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-          const replacementText = data.candidates[0].content.parts[0].text.replace(/^```\w*\n?/, '').replace(/\n?```$/, '');
-          addReviewComment({
-            id: String(Date.now()),
-            filePath: currentFile,
-            line: startLine,
-            message: `AI Refactor: ${promptText}`,
-            originalText,
-            replacementText
-          });
-        } else {
-          throw new Error(data.error?.message || "Invalid API response");
-        }
+        const responseText = await callModelAPI(systemPrompt, apiProvider, apiKey, apiEndpoint, apiModel);
+        const replacementText = responseText.replace(/^```\w*\n?/, '').replace(/\n?```$/, '');
+        addReviewComment({
+          id: String(Date.now()),
+          filePath: currentFile,
+          line: startLine,
+          message: `AI Refactor: ${promptText}`,
+          originalText,
+          replacementText
+        });
       } catch (err: any) {
-        alert(`Failed to call Gemini API: ${err.message || err}`);
+        alert(`Failed to call AI API: ${err.message || err}`);
       } finally {
         setIsGenerating(false);
         setActiveOverlay(null);
