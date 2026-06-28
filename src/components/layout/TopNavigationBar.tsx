@@ -152,7 +152,11 @@ export function TopNavigationBar() {
         >
           <Search className="w-4 h-4 text-ide-text/80 hover:text-white" />
         </button>
-        <button className="p-1.5 hover:bg-ide-panel rounded cursor-pointer transition-colors">
+        <button 
+          onClick={() => setActiveOverlay('settings')}
+          className="p-1.5 hover:bg-ide-panel rounded cursor-pointer transition-colors"
+          title="Settings"
+        >
           <Settings className="w-4 h-4 text-ide-text/80 hover:text-white" />
         </button>
       </div>

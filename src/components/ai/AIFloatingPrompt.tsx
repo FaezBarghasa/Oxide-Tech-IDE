@@ -20,7 +20,7 @@ export function AIFloatingPrompt({ editor, onClose }: AIFloatingPromptProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   
   const { currentFile, addReviewComment } = useEditorStore();
-  const { setActiveOverlay } = useSettingsStore();
+  const { setActiveOverlay, apiKey } = useSettingsStore();
 
   useEffect(() => {
     if (!editor) return;
@@ -72,47 +72,94 @@ export function AIFloatingPrompt({ editor, onClose }: AIFloatingPromptProps) {
       }
     }
 
-    // Simulate model inference and generate code diff
-    setTimeout(() => {
-      let replacementText = originalText;
-      let message = 'Suggested refactoring';
+    if (apiKey) {
+      try {
+        const systemPrompt = `You are an AI coding assistant. The user wants to modify/refactor a code segment in file '${currentFile}'.
+User request: "${promptText}"
 
-      const promptLower = promptText.toLowerCase();
-      if (promptLower.includes('match') || promptLower.includes('refactor')) {
-        if (originalText.includes('if ') || originalText.includes('else if')) {
-          message = 'Refactored conditional statements to a structured Match pattern.';
-          replacementText = originalText
-            .replace(/if\s+(\w+)\s*==\s*([\w":\s]+)\s*\{([\s\S]*?)\}/, 'match $1 {\n    $2 => {$3}')
-            .replace(/else\s+if\s+(\w+)\s*==\s*([\w":\s]+)\s*\{([\s\S]*?)\}/g, '    $2 => {$3}')
-            .replace(/else\s*\{([\s\S]*?)\}/, '    _ => {$1\n}');
+Here is the exact code block to modify:
+\`\`\`
+${originalText}
+\`\`\`
+
+Return ONLY the modified code segment that should replace the block above. Do not enclose the code in markdown code blocks (\`\`\`). Do not add explanations or commentary. Just output the replacement code directly.`;
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: systemPrompt }] }]
+            })
+          }
+        );
+        const data = await response.json();
+        if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+          const replacementText = data.candidates[0].content.parts[0].text.replace(/^```\w*\n?/, '').replace(/\n?```$/, '');
+          addReviewComment({
+            id: String(Date.now()),
+            filePath: currentFile,
+            line: startLine,
+            message: `AI Refactor: ${promptText}`,
+            originalText,
+            replacementText
+          });
         } else {
-          message = 'Wrapped code segment in matching handler block.';
-          replacementText = `match state {\n    Active => {\n        ${originalText.trim()}\n    }\n    _ => {}\n}`;
+          throw new Error(data.error?.message || "Invalid API response");
         }
-      } else if (promptLower.includes('unwrap') || promptLower.includes('error')) {
-        message = 'Safe error handling replacing risky unwraps.';
-        replacementText = originalText.replace(/\.unwrap\(\)/g, '.map_err(|e| log::error!("Error: {:?}", e))?');
-      } else if (promptLower.includes('doc') || promptLower.includes('comment')) {
-        message = 'Added structured Rust documentation block.';
-        replacementText = `/// TODO: Verify correct application state behavior.\n/// Invoked during local firmware compilation diagnostics loop.\n${originalText}`;
-      } else {
-        message = `AI edit: "${promptText}"`;
-        replacementText = `${originalText}\n// Added by AI: Verified logic sequence`;
+      } catch (err: any) {
+        alert(`Failed to call Gemini API: ${err.message || err}`);
+      } finally {
+        setIsGenerating(false);
+        setActiveOverlay(null);
+        onClose();
       }
+    } else {
+      // Simulate model inference and generate code diff
+      setTimeout(() => {
+        let replacementText = originalText;
+        let message = 'Suggested refactoring';
 
-      addReviewComment({
-        id: String(Date.now()),
-        filePath: currentFile,
-        line: startLine,
-        message,
-        originalText,
-        replacementText
-      });
+        const promptLower = promptText.toLowerCase();
+        if (promptLower.includes('match') || promptLower.includes('refactor')) {
+          if (originalText.includes('if ') || originalText.includes('else if')) {
+            message = 'Refactored conditional statements to a structured Match pattern.';
+            replacementText = originalText
+              .replace(/if\s+(\w+)\s*==\s*([\w":\s]+)\s*\{([\s\S]*?)\}/, 'match $1 {\n    $2 => {$3}')
+              .replace(/else\s+if\s+(\w+)\s*==\s*([\w":\s]+)\s*\{([\s\S]*?)\}/g, '    $2 => {$3}')
+              .replace(/else\s*\{([\s\S]*?)\}/, '    _ => {$1\n}');
+          } else {
+            message = 'Wrapped code segment in matching handler block.';
+            replacementText = `match state {\n    Active => {\n        ${originalText.trim()}\n    }\n    _ => {}\n}`;
+          }
+        } else if (promptLower.includes('unwrap') || promptLower.includes('error')) {
+          message = 'Safe error handling replacing risky unwraps.';
+          replacementText = originalText.replace(/\.unwrap\(\)/g, '.map_err(|e| log::error!("Error: {:?}", e))?');
+        } else if (promptLower.includes('doc') || promptLower.includes('comment')) {
+          message = 'Added structured Rust documentation block.';
+          replacementText = `/// TODO: Verify correct application state behavior.\n/// Invoked during local firmware compilation diagnostics loop.\n${originalText}`;
+        } else {
+          message = `AI edit: "${promptText}"`;
+          replacementText = `${originalText}\n// Added by AI: Verified logic sequence`;
+        }
 
-      setIsGenerating(false);
-      setActiveOverlay(null);
-      onClose();
-    }, 1000);
+        addReviewComment({
+          id: String(Date.now()),
+          filePath: currentFile,
+          line: startLine,
+          message,
+          originalText,
+          replacementText
+        });
+
+        setIsGenerating(false);
+        setActiveOverlay(null);
+        onClose();
+      }, 1000);
+    }
   };
 
   return (

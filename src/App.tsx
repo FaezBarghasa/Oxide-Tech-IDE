@@ -9,7 +9,8 @@ import {
   Omnibar,
   HarpoonBuffers,
   TransientOverlay,
-  TaskHUD
+  TaskHUD,
+  SettingsModal
 } from './components';
 
 export default function App() {
@@ -57,6 +58,7 @@ export default function App() {
       <HarpoonBuffers />
       <TransientOverlay />
       <TaskHUD />
+      {activeOverlay === 'settings' && <SettingsModal />}
     </QueryClientProvider>
   );
 }

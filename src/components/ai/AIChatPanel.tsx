@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Send, Bot, User, CheckSquare, Sparkles, RefreshCw } from 'lucide-react';
 import { cn } from '../../utils/theme';
+import { useSettingsStore } from '../../state/settingsStore';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -16,6 +17,7 @@ interface TaskBoardItem {
 
 export function AIChatPanel() {
   const [activeSubTab, setActiveSubTab] = useState<'chat' | 'tasks'>('chat');
+  const { apiKey } = useSettingsStore();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -50,31 +52,76 @@ export function AIChatPanel() {
 
     setMessages(prev => [...prev, userMessageObj]);
 
-    // Simulating Local Model inference
-    setTimeout(() => {
-      let responseContent = '';
-      if (userMsg.toLowerCase().includes('review') || userMsg.toLowerCase().includes('pr')) {
-        responseContent = `### Pull Request / Code Review Suggestion\n\n- **Optimizations**: Consolidate Tauri commands into a single handlers file if tree operations grow too large.\n- **Performance**: Switch standard \`Command\` execution to async streams in \`file_ops.rs\`.\n- **Lints**: Ensure \`#[serde(rename = "...")]\` is explicitly added for Javascript compatibility.`;
-      } else {
-        responseContent = `I have received your prompt: "${userMsg}". Spawning local model planner...\n\nI recommend creating a custom automation script via the **Skills Orchestrator** to perform this task automatically. Let me know if I should decompose this into task board items for you.`;
-        
-        // Decompose the command into the task board as a demonstration of "agentic coding"
-        setTasks(prev => [
-          ...prev,
-          { id: String(Date.now()), title: `Local Task: ${userMsg.slice(0, 30)}...`, status: 'todo' }
-        ]);
-      }
-
-      setMessages(prev => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: responseContent,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    if (apiKey) {
+      // Real Gemini API Call
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: userMsg }] }]
+            })
+          }
+        );
+        const data = await response.json();
+        let responseContent = '';
+        if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+          responseContent = data.candidates[0].content.parts[0].text;
+        } else {
+          throw new Error(data.error?.message || "Invalid API response structure");
         }
-      ]);
-      setIsGenerating(false);
-    }, 1200);
+        
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: responseContent,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+      } catch (err: any) {
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: `Error calling Gemini API: ${err.message || err}. Please verify your API key in Settings.`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+      } finally {
+        setIsGenerating(false);
+      }
+    } else {
+      // Simulating Local Model inference
+      setTimeout(() => {
+        let responseContent = '';
+        if (userMsg.toLowerCase().includes('review') || userMsg.toLowerCase().includes('pr')) {
+          responseContent = `### Pull Request / Code Review Suggestion\n\n- **Optimizations**: Consolidate Tauri commands into a single handlers file if tree operations grow too large.\n- **Performance**: Switch standard \`Command\` execution to async streams in \`file_ops.rs\`.\n- **Lints**: Ensure \`#[serde(rename = "...")]\` is explicitly added for Javascript compatibility.`;
+        } else {
+          responseContent = `I have received your prompt: "${userMsg}". Spawning local model planner...\n\nI recommend creating a custom automation script via the **Skills Orchestrator** to perform this task automatically. Let me know if I should decompose this into task board items for you.`;
+          
+          // Decompose the command into the task board as a demonstration of "agentic coding"
+          setTasks(prev => [
+            ...prev,
+            { id: String(Date.now()), title: `Local Task: ${userMsg.slice(0, 30)}...`, status: 'todo' }
+          ]);
+        }
+
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: responseContent,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+        setIsGenerating(false);
+      }, 1200);
+    }
   };
 
   const handleReviewCode = () => {
