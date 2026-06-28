@@ -2,7 +2,6 @@ import { Play, Save, Bot } from 'lucide-react';
 import { useEditorStore } from '../../state/editorStore';
 import { useCompilationStore } from '../../state/compilationStore';
 import { tauriCommands } from '../../services/tauri';
-
 export function EditorToolbar() {
   const { currentFile, files, markSaved } = useEditorStore();
   const fileData = currentFile ? files.get(currentFile) : null;
@@ -44,42 +43,30 @@ export function EditorToolbar() {
   };
 
   return (
-    <div className="h-9 flex bg-ide-panel border-b border-ide-border select-none overflow-hidden shrink-0">
-      <div className="px-4 flex items-center bg-ide-bg border-t-2 border-t-ide-keyword border-r border-r-ide-border text-xs space-x-2">
-        {currentFile ? (
-          <>
-            <span className="text-white font-mono text-[11px]">{currentFile.split('/').pop()}</span>
-            {fileData?.unsaved && <span className="ml-2 w-1.5 h-1.5 rounded-full bg-ide-keyword"></span>}
-          </>
-        ) : (
-          <span className="text-ide-text/50 italic">No file open</span>
-        )}
-      </div>
-      
-      <div className="flex-1 flex items-center justify-end px-3 space-x-2">
-        <button className="flex items-center px-2 py-1 text-[9px] font-bold tracking-widest uppercase bg-ide-bg text-ide-text hover:text-white hover:bg-ide-hover rounded border border-ide-border transition-colors mr-2 cursor-pointer">
-          <Bot className="w-3.5 h-3.5 mr-1.5 text-ide-function" />
-          Gemini 3.5 Flash
-        </button>
-        <div className="w-px h-4 bg-ide-border mx-1"></div>
-        <button 
-          onClick={handleSave}
-          disabled={!currentFile || !fileData?.unsaved}
-          className="p-1.5 text-ide-text hover:text-white hover:bg-ide-hover rounded disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
-          title="Save File (Ctrl+S)"
-        >
-          <Save className="w-3.5 h-3.5" />
-        </button>
-        <div className="w-px h-4 bg-ide-border mx-1"></div>
-        <button 
-          onClick={handleCheck}
-          disabled={lastBuildStatus === 'running'}
-          className="flex items-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-ide-hover text-ide-text hover:bg-ide-activeTab hover:text-white rounded border border-ide-border cursor-pointer transition-colors disabled:opacity-50"
-        >
-          <Play className="w-3.5 h-3.5 mr-1.5 text-green-400" />
-          Check
-        </button>
-      </div>
+    <div className="flex items-center justify-end px-3 space-x-2 h-full bg-ide-panel select-none">
+      <button className="flex items-center px-2 py-1 text-[9px] font-bold tracking-widest uppercase bg-ide-bg text-ide-text hover:text-white hover:bg-ide-hover rounded border border-ide-border transition-colors mr-2 cursor-pointer">
+        <Bot className="w-3.5 h-3.5 mr-1.5 text-ide-function" />
+        Gemini 3.5 Flash
+      </button>
+      <div className="w-px h-4 bg-ide-border mx-1"></div>
+      <button 
+        onClick={handleSave}
+        disabled={!currentFile || !fileData?.unsaved}
+        className="p-1.5 text-ide-text hover:text-white hover:bg-ide-hover rounded disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+        title="Save File (Ctrl+S)"
+      >
+        <Save className="w-3.5 h-3.5" />
+      </button>
+      <div className="w-px h-4 bg-ide-border mx-1"></div>
+      <button 
+        onClick={handleCheck}
+        disabled={lastBuildStatus === 'running'}
+        className="flex items-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-ide-hover text-ide-text hover:bg-ide-activeTab hover:text-white rounded border border-ide-border cursor-pointer transition-colors disabled:opacity-50"
+      >
+        <Play className="w-3.5 h-3.5 mr-1.5 text-green-400" />
+        Check
+      </button>
     </div>
   );
 }
+

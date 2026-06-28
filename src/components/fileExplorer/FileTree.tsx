@@ -39,20 +39,22 @@ export function FileTree() {
 
   return (
     <div className="flex flex-col h-full text-ide-text" onContextMenu={handleRootContextMenu}>
-      <div className="flex items-center justify-between px-2 py-1.5 border-b border-ide-border select-none shrink-0 bg-ide-panel/30">
-        <span className="text-[10px] text-white font-medium uppercase tracking-wider">Workspace</span>
-        <div className="flex items-center space-x-1.5">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-ide-border select-none shrink-0 bg-ide-panel/50">
+        <span className="text-[11px] text-white/90 font-semibold tracking-wide font-sans truncate pr-2">
+          {workspaceRoot.split('/').pop() || 'Workspace'}
+        </span>
+        <div className="flex items-center space-x-2">
           <button
             onClick={() => setContextMenu({ x: 100, y: 100, targetPath: workspaceRoot, isDirectory: true })}
             title="New File/Folder in Root"
-            className="text-ide-text hover:text-white transition-colors cursor-pointer"
+            className="text-ide-text/60 hover:text-white transition-colors cursor-pointer p-0.5 hover:bg-ide-hover rounded"
           >
             <FolderPlus className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => reloadTree()}
             title="Refresh Explorer"
-            className="text-ide-text hover:text-white transition-colors cursor-pointer"
+            className="text-ide-text/60 hover:text-white transition-colors cursor-pointer p-0.5 hover:bg-ide-hover rounded"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>

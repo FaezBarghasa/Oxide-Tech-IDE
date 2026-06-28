@@ -4,7 +4,7 @@ import { useEditorStore } from '../../state/editorStore';
 import { useSettingsStore } from '../../state/settingsStore';
 import { useCompilationStore } from '../../state/compilationStore';
 import { setupMonacoRust } from '../../services/monaco';
-import { EditorToolbar } from './EditorToolbar';
+import { EditorTabs } from './EditorTabs';
 import { AIFloatingPrompt } from '../ai/AIFloatingPrompt';
 import { Activity } from 'lucide-react';
 
@@ -266,7 +266,7 @@ export function CodeEditor() {
 
   return (
     <div className="flex flex-col h-full bg-ide-bg overflow-hidden relative">
-      {!zenMode && <EditorToolbar />}
+      {!zenMode && <EditorTabs />}
       {!currentFile ? (
         <div className="flex-grow flex flex-col items-center justify-center text-ide-text select-none">
           <Activity className="w-12 h-12 mb-4 text-ide-hover animate-pulse" />

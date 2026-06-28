@@ -1,4 +1,4 @@
-import { Minus } from 'lucide-react';
+import { Minus, Settings } from 'lucide-react';
 import { useLayoutState, ToolWindowId } from './useLayoutState';
 import { ReactNode } from 'react';
 
@@ -16,13 +16,20 @@ export function ToolWindowPanel({ id, children }: ToolWindowPanelProps) {
   return (
     <div className="flex flex-col w-full h-full bg-ide-bg border-ide-border">
       <div className="h-8 flex items-center justify-between px-3 bg-ide-panel border-b border-ide-border select-none shrink-0">
-        <span className="text-xs font-semibold text-white tracking-wide">{win.title}</span>
-        <div className="flex items-center space-x-1">
+        <span className="text-[11px] font-semibold text-white/90 tracking-wide font-sans">{win.title}</span>
+        <div className="flex items-center space-x-1.5">
           <button 
-            className="p-1 hover:bg-white/10 rounded cursor-pointer text-ide-text hover:text-white"
-            onClick={() => toggleToolWindow(id)}
+            className="p-1 hover:bg-ide-hover rounded cursor-pointer text-ide-text/60 hover:text-white transition-colors"
+            title="Options"
           >
-            <Minus className="w-3.5 h-3.5" />
+            <Settings className="w-3 h-3" />
+          </button>
+          <button 
+            className="p-1 hover:bg-ide-hover rounded cursor-pointer text-ide-text/60 hover:text-white transition-colors"
+            onClick={() => toggleToolWindow(id)}
+            title="Minimize"
+          >
+            <Minus className="w-3 h-3" />
           </button>
         </div>
       </div>
