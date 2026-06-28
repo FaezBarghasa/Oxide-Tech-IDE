@@ -29,7 +29,52 @@ interface ExtensionStoreState {
 }
 
 export const useExtensionStore = create<ExtensionStoreState>((set) => ({
-  extensions: [],
+  extensions: [
+    {
+      manifest: {
+        name: "rust-analyzer",
+        version: "0.4.2026",
+        publisher: "rust-lang",
+        displayName: "Rust Analyzer",
+        description: "Standard language server support for Rust in the Oxide Tech IDE.",
+      },
+      path: "/builtin/extensions/rust-analyzer",
+      isActive: true
+    },
+    {
+      manifest: {
+        name: "gitlens",
+        version: "15.1.0",
+        publisher: "GitKraken",
+        displayName: "GitLens",
+        description: "Visualize code authorship at a glance via Git blame annotations.",
+      },
+      path: "/builtin/extensions/gitlens",
+      isActive: true
+    },
+    {
+      manifest: {
+        name: "copilot",
+        version: "1.252.0",
+        publisher: "GitHub",
+        displayName: "GitHub Copilot",
+        description: "AI pair programmer providing inline autocomplete and predictions.",
+      },
+      path: "/builtin/extensions/copilot",
+      isActive: true
+    },
+    {
+      manifest: {
+        name: "prettier",
+        version: "10.4.0",
+        publisher: "Prettier",
+        displayName: "Prettier - Code formatter",
+        description: "Opinionated code formatter for Javascript, TypeScript, CSS, and HTML.",
+      },
+      path: "/builtin/extensions/prettier",
+      isActive: true
+    }
+  ],
   registerExtension: (manifest, path) => set((state) => {
     // Prevent duplicate registrations
     if (state.extensions.some(e => e.manifest.name === manifest.name)) {

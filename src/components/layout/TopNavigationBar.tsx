@@ -124,8 +124,24 @@ export function TopNavigationBar() {
         </div>
       </div>
 
-      {/* Right section: Search / Settings */}
-      <div className="flex items-center space-x-3">
+      {/* Right section: Search / Settings / Peer Avatars */}
+      <div className="flex items-center space-x-3 bg-ide-bg">
+        {/* Collaborative Avatars (Zed feature) */}
+        <div className="flex items-center -space-x-1.5 mr-2">
+          <div className="relative group cursor-pointer" title="User Jrad (You)">
+            <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[9px] border border-ide-bg font-sans">
+              J
+            </div>
+            <div className="absolute bottom-0 right-0 w-1.5 h-1.5 bg-green-500 rounded-full border border-ide-bg" />
+          </div>
+          <div className="relative group cursor-pointer" title="Antigravity AI (Pair programmer)">
+            <div className="w-5 h-5 rounded-full bg-ide-keyword text-white flex items-center justify-center font-bold text-[8px] border border-ide-bg font-sans">
+              AG
+            </div>
+            <div className="absolute bottom-0 right-0 w-1.5 h-1.5 bg-green-500 rounded-full border border-ide-bg" />
+          </div>
+        </div>
+
         <button 
           onClick={() => {
             setTransientView('previews');

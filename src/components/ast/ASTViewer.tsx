@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { Code2 } from 'lucide-react';
 import { useASTStore } from '../../state/astStore';
 import { useEditorStore } from '../../state/editorStore';
 import { cn } from '../../utils/theme';
+import { parseAST } from '../../utils/astParser';
 
 interface ASTNodeProps {
   node: {
@@ -48,7 +50,15 @@ function ASTNodeItem({ node, depth }: ASTNodeProps) {
 
 export function ASTViewer() {
   const { astRoot, setAstRoot, selectedNode } = useASTStore();
-  const { currentFile } = useEditorStore();
+  const { currentFile, files } = useEditorStore();
+  const fileData = currentFile ? files.get(currentFile) : null;
+
+  useEffect(() => {
+    if (currentFile && fileData) {
+      const parsed = parseAST(fileData.content, currentFile);
+      setAstRoot(parsed);
+    }
+  }, [currentFile, fileData?.content, setAstRoot]);
 
   const handleRefactor = () => {
     if (selectedNode) {
