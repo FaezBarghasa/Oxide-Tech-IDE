@@ -27,3 +27,4 @@ export * from './ai/TaskHUD';
 export * from './layout/HarpoonBuffers';
 export * from './layout/Omnibar';
 export * from './layout/TransientOverlay';
+export * from './layout/SettingsModal';

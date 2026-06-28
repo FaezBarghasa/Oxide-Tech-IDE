@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type ActiveOverlayType = 'omnibar' | 'harpoon' | 'prompt' | 'transient' | null;
+export type ActiveOverlayType = 'omnibar' | 'harpoon' | 'prompt' | 'transient' | 'settings' | null;
 export type TransientViewType = 'rest' | 'serial' | 'mqtt' | 'extensions' | 'skills' | 'mcp' | 'previews' | null;
 
 interface SettingsStoreState {
@@ -11,6 +11,8 @@ interface SettingsStoreState {
   zenMode: boolean;
   activeOverlay: ActiveOverlayType;
   transientView: TransientViewType;
+  apiKey: string | null;
+  vimMode: boolean;
   
   setTheme: (theme: 'dark' | 'light') => void;
   setFontSize: (size: number) => void;
@@ -19,6 +21,8 @@ interface SettingsStoreState {
   toggleZenMode: () => void;
   setActiveOverlay: (overlay: ActiveOverlayType) => void;
   setTransientView: (view: TransientViewType) => void;
+  setApiKey: (key: string | null) => void;
+  toggleVimMode: () => void;
 }
 
 export const useSettingsStore = create<SettingsStoreState>()(
@@ -30,6 +34,8 @@ export const useSettingsStore = create<SettingsStoreState>()(
       zenMode: true,
       activeOverlay: null,
       transientView: null,
+      apiKey: null,
+      vimMode: false,
       
       setTheme: (theme) => set({ theme }),
       setFontSize: (fontSize) => set({ fontSize }),
@@ -37,7 +43,9 @@ export const useSettingsStore = create<SettingsStoreState>()(
       setZenMode: (zenMode) => set({ zenMode }),
       toggleZenMode: () => set((state) => ({ zenMode: !state.zenMode })),
       setActiveOverlay: (activeOverlay) => set({ activeOverlay }),
-      setTransientView: (transientView) => set({ transientView })
+      setTransientView: (transientView) => set({ transientView }),
+      setApiKey: (apiKey) => set({ apiKey }),
+      toggleVimMode: () => set((state) => ({ vimMode: !state.vimMode }))
     }),
     { name: 'tauri-coder-settings' }
   )
