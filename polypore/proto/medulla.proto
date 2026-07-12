@@ -1,0 +1,26 @@
+syntax = "proto3";
+package aeos.security;
+
+service MedullaBroker {
+  rpc RequestCredentialApproval(CredentialRequest) returns (CredentialResponse);
+  rpc ExchangePlaceholder(TokenExchangeRequest) returns (TokenExchangeResponse);
+}
+
+message CredentialRequest {
+  string session_id = 1;
+  string domain = 2; // "sudo", "github", "npm"
+  string system_command = 3;
+}
+
+message CredentialResponse {
+  bool is_authorized = 1;
+  string raw_credential = 2;
+}
+
+message TokenExchangeRequest {
+  string placeholder_token = 1; // e.g. "POLYPORE_SECRET_HANDLE_AWS"
+}
+
+message TokenExchangeResponse {
+  string raw_secret = 1;
+}
