@@ -1,82 +1,70 @@
-use crate::dag::SwarmDag;
-use uuid::Uuid;
-use std::collections::{HashMap, VecDeque};
+use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use serde::{Deserialize, Serialize};
+use crate::dag::{DAGNode, Workflow, NodeState};
+use anyhow::Result;
 
-pub struct WaveScheduler {
-    pub waves: Vec<Vec<Uuid>>,
+#[derive(Deserialize)]
+struct PlanRequest {
+    ticket_description: String,
 }
 
-impl WaveScheduler {
-    pub fn new(dag: &SwarmDag) -> OxideResult<Self> {
-        let sorted_ids = dag.validate_and_sort()?;
+#[derive(Serialize)]
+struct PlanResponse {
+    workflow_id: String,
+    tasks: Vec<DAGNode>,
+}
 
-        // Calculate in-degree for each node
-        let mut in_degree: HashMap<Uuid, usize> = HashMap::new();
-        for task_id in &sorted_ids {
-            in_degree.insert(*task_id, 0);
-        }
+async fn plan_handler(req: web::Json<PlanRequest>) -> impl Responder {
+    // In a real implementation, we would query the code graph and call an LLM to generate the plan.
+    // For now, we just return a dummy plan.
+    let workflow_id = format!("linear-issue-{}", rand::random::<u16>());
+    let tasks = vec![
+        DAGNode {
+            id: "task_database".to_string(),
+            execution_cmd: "cargo run --bin db-migrate".to_string(),
+            validation_script: "cargo test test_migrations".to_string(),
+            dependencies: vec![],
+            state: NodeState::Pending,
+        },
+        DAGNode {
+            id: "task_backend".to_string(),
+            execution_cmd: "cargo build --bin backend".to_string(),
+            validation_script: "cargo test test_api".to_string(),
+            dependencies: vec!["task_database".to_string()],
+            state: NodeState::Pending,
+        },
+    ];
 
-        for task_id in &sorted_ids {
-            let dependents = dag.get_dependents(task_id);
-            for dep_id in dependents {
-                *in_degree.entry(dep_id).or_insert(0) += 1;
-            }
-        }
+    HttpResponse::Ok().json(PlanResponse {
+        workflow_id,
+        tasks,
+    })
+}
 
-        // Build waves using BFS
-        let mut waves: Vec<Vec<Uuid>> = Vec::new();
-        let mut queue: VecDeque<Uuid> = VecDeque::new();
+pub fn configure_scheduler(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        web::resource("/swarm/plan")
+            .route(web::post().to(plan_handler))
+    );
+}
 
-        // Start with nodes that have in-degree 0
-        for (task_id, &degree) in &in_degree {
-            if degree == 0 {
-                queue.push_back(*task_id);
-            }
-        }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::{test, App};
 
-        while !queue.is_empty() {
-            let mut current_wave = Vec::new();
-            let mut next_queue: VecDeque<Uuid> = VecDeque::new();
+    #[actix_web::test]
+    async fn test_plan_handler() {
+        let app = test::init_service(App::new().configure(configure_scheduler)).await;
 
-            while let Some(task_id) = queue.pop_front() {
-                current_wave.push(task_id);
+        let req = test::TestRequest::post()
+            .uri("/swarm/plan")
+            .set_json(&PlanRequest { ticket_description: "test ticket".to_string() })
+            .to_request();
 
-                // Decrement in-degree of dependents
-                for dep_id in dag.get_dependents(&task_id) {
-                    if let Some(degree) = in_degree.get_mut(&dep_id) {
-                        *degree -= 1;
-                        if *degree == 0 {
-                            next_queue.push_back(dep_id);
-                        }
-                    }
-                }
-            }
+        let resp: PlanResponse = test::call_and_read_body_json(&app, req).await;
 
-            waves.push(current_wave);
-            queue = next_queue;
-        }
-
-        Ok(Self { waves })
-    }
-
-    pub fn get_total_waves(&self) -> usize {
-        self.waves.len()
-    }
-
-    pub fn get_wave(&self, wave_index: usize) -> Option<&Vec<Uuid>> {
-        self.waves.get(wave_index)
-    }
-
-    pub fn get_max_parallelism(&self) -> usize {
-        self.waves.iter().map(|w| w.len()).max().unwrap_or(0)
-    }
-
-    pub fn estimate_total_tokens(&self, dag: &SwarmDag) -> u64 {
-        self.waves
-            .iter()
-            .flatten()
-            .filter_map(|id| dag.get_task(id))
-            .map(|task| task.estimated_tokens)
-            .sum()
+        assert!(!resp.workflow_id.is_empty());
+        assert_eq!(resp.tasks.len(), 2);
     }
 }

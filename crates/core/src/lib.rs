@@ -1,3 +1,4 @@
 pub mod errors;
 pub mod telemetry;
-pub mod logs;
+pub mod plain_text_processor;
+pub mod approvals;
