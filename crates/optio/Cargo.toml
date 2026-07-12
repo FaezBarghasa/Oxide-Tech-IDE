@@ -16,3 +16,7 @@ log = "0.4"
 env_logger = "0.9"
 string-interner = "0.14.0"
 jaro-winkler = "0.2.0"
+core = { path = "../core" }
+thiserror = "1.0"
+async-trait = "0.1"
+futures = "0.3"

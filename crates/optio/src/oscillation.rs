@@ -1,95 +1,85 @@
-use ahash::AHasher;
-use std::hash::{Hash, Hasher};
+use std::collections::HashMap;
+use jaro_winkler::jaro_winkler;
 
-pub struct OscillationDetector {
-    hashes: Vec<u64>,
-    window_size: usize,
+#[derive(Debug, Clone)]
+pub struct LoopDiagnostics {
+    pub compiler_error: String,
+    pub edited_files: Vec<String>,
+    pub proposed_fix: String,
+    pub timestamp: u64,
 }
 
-impl OscillationDetector {
-    pub fn new(window_size: usize) -> Self {
+pub struct LoopDefuser {
+    history: Vec<LoopDiagnostics>,
+    limit: usize,
+    threshold: f64,
+}
+
+impl LoopDefuser {
+    pub fn new(limit: usize, threshold: f64) -> Self {
         Self {
-            hashes: Vec::new(),
-            window_size,
+            history: Vec::new(),
+            limit,
+            threshold,
         }
     }
 
-    pub fn add_code(&mut self, code: &str) {
-        let hash = Self::compute_hash(code);
-        self.hashes.push(hash);
+    pub fn register_turn(&mut self, turn: LoopDiagnostics) -> (bool, HashMap<String, f32>) {
+        let mut is_oscillating = false;
+        let mut logit_bias = HashMap::new();
 
-        // Keep only the last window_size hashes
-        if self.hashes.len() > self.window_size {
-            self.hashes.remove(0);
-        }
-    }
+        for past_turn in &self.history {
+            let error_similarity = jaro_winkler(&turn.compiler_error, &past_turn.compiler_error);
+            let fix_similarity = jaro_winkler(&turn.proposed_fix, &past_turn.proposed_fix);
 
-    pub fn detect_oscillation(&self) -> bool {
-        if self.hashes.len() < 2 {
-            return false;
-        }
-
-        let last_hash = self.hashes[self.hashes.len() - 1];
-
-        // Check if the last hash appears earlier in the window
-        // This indicates the agent returned to a previous state
-        self.hashes[..self.hashes.len() - 1].contains(&last_hash)
-    }
-
-    pub fn detect_cycle(&self) -> Option<Vec<usize>> {
-        // Detect if there's a repeating pattern (e.g., A, B, A, B, A, B)
-        if self.hashes.len() < 4 {
-            return None;
-        }
-
-        // Try different cycle lengths
-        for cycle_len in 2..=(self.hashes.len() / 2) {
-            let mut is_cycle = true;
-
-            for i in cycle_len..self.hashes.len() {
-                if self.hashes[i] != self.hashes[i - cycle_len] {
-                    is_cycle = false;
-                    break;
-                }
-            }
-
-            if is_cycle {
-                return Some((0..cycle_len).collect());
+            if error_similarity > self.threshold && fix_similarity > self.threshold {
+                is_oscillating = true;
+                break;
             }
         }
 
-        None
+        if is_oscillating {
+            logit_bias.insert("try".to_string(), -10.0);
+            logit_bias.insert("wait".to_string(), -10.0);
+            logit_bias.insert("same".to_string(), -10.0);
+        }
+
+        self.history.push(turn);
+        if self.history.len() > self.limit {
+            self.history.remove(0);
+        }
+
+        (is_oscillating, logit_bias)
     }
+}
 
-    pub fn reset(&mut self) {
-        self.hashes.clear();
-    }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    fn compute_hash(code: &str) -> u64 {
-        // Normalize the code before hashing (remove whitespace, comments)
-        let normalized = Self::normalize_code(code);
+    #[test]
+    fn test_oscillation_detection() {
+        let mut defuser = LoopDefuser::new(10, 0.9);
 
-        let mut hasher = AHasher::default();
-        normalized.hash(&mut hasher);
-        hasher.finish()
-    }
+        let turn1 = LoopDiagnostics {
+            compiler_error: "error: expected type, found `}`".to_string(),
+            edited_files: vec!["file.rs".to_string()],
+            proposed_fix: "add a semicolon".to_string(),
+            timestamp: 0,
+        };
 
-    fn normalize_code(code: &str) -> String {
-        // Remove whitespace and comments for consistent hashing
-        code.lines()
-            .map(|line| {
-                // Remove single-line comments
-                let line = if let Some(idx) = line.find("//") {
-                    &line[..idx]
-                } else {
-                    line
-                };
+        let turn2 = LoopDiagnostics {
+            compiler_error: "error: expected type, found `}`".to_string(),
+            edited_files: vec!["file.rs".to_string()],
+            proposed_fix: "add a semicolon".to_string(),
+            timestamp: 1,
+        };
 
-                // Trim whitespace
-                line.trim()
-            })
-            .filter(|line| !line.is_empty())
-            .collect::<Vec<_>>()
-            .join(" ")
+        let (is_oscillating, _) = defuser.register_turn(turn1);
+        assert!(!is_oscillating);
+
+        let (is_oscillating, logit_bias) = defuser.register_turn(turn2);
+        assert!(is_oscillating);
+        assert!(logit_bias.contains_key("try"));
     }
 }

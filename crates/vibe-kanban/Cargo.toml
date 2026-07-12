@@ -20,3 +20,11 @@ p256 = { version = "0.10", features = ["ecdh"] }
 sha2 = "0.10"
 hkdf = "0.12"
 aes-gcm = "0.9"
+surrealdb = "1.0.0-beta.9"
+uuid = { version = "1", features = ["v4"] }
+context-compiler = { path = "../context-compiler" }
+core = { path = "../core" }
+thiserror = "1.0"
+async-trait = "0.1"
+git2 = "0.18"
+tempfile = "3"

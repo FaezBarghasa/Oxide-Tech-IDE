@@ -1,204 +1,201 @@
-use syn::visit::Visit;
-use quote::ToTokens;
-use std::path::PathBuf;
-use uuid::Uuid;
-use serde::{Serialize, Deserialize};
-use core::errors::{OxideError, OxideResult};
+use std::collections::HashMap;
+use std::path::Path;
+use tree_sitter::{Parser, Tree};
+use anyhow::Result;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum SymbolKind {
-    Function,
-    Struct,
-    Enum,
-    Trait,
-    Impl,
-    Module,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CodeSymbol {
-    pub id: Uuid,
-    pub kind: SymbolKind,
-    pub name: String,
-    pub signature: String,
-    pub file_path: PathBuf,
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ParsedSymbol {
+    pub identifier: String,
+    pub kind: String, // "class", "struct", "function", "method"
     pub start_line: usize,
     pub end_line: usize,
-    pub dependencies: Vec<String>,
+    pub parameters: Vec<String>,
 }
 
-pub struct RustAstParser;
-
-impl RustAstParser {
-    pub fn parse_file(file_path: &PathBuf, source_code: &str) -> OxideResult<Vec<CodeSymbol>> {
-        let syntax = syn::parse_file(source_code)
-            .map_err(|e| OxideError::AstParseError {
-                path: file_path.clone(),
-                message: e.to_string(),
-            })?;
-
-        let mut visitor = SymbolVisitor {
-            file_path: file_path.clone(),
-            symbols: Vec::new(),
-            current_dependencies: Vec::new(),
-        };
-
-        visitor.visit_file(&syntax);
-
-        Ok(visitor.symbols)
-    }
+pub struct TokenixParser {
+    parsers: HashMap<String, Parser>,
+    tree_cache: HashMap<String, Tree>,
 }
 
-struct SymbolVisitor {
-    file_path: PathBuf,
-    symbols: Vec<CodeSymbol>,
-    current_dependencies: Vec<String>,
-}
+impl TokenixParser {
+    pub fn new() -> Result<Self> {
+        let mut parsers = HashMap::new();
 
-impl<'ast> Visit<'ast> for SymbolVisitor {
-    fn visit_item_fn(&mut self, node: &'ast syn::ItemFn) {
-        let name = node.sig.ident.to_string();
-        let signature = node.sig.to_token_stream().to_string();
+        let mut rust_parser = Parser::new();
+        rust_parser.set_language(&tree_sitter_rust::language())?;
+        parsers.insert("rust".to_string(), rust_parser);
 
-        // Extract dependencies from function body
-        self.current_dependencies.clear();
-        self.visit_block(&node.block);
+        let mut ts_parser = Parser::new();
+        ts_parser.set_language(&tree_sitter_typescript::language_typescript())?;
+        parsers.insert("typescript".to_string(), ts_parser);
 
-        let symbol = CodeSymbol {
-            id: Uuid::new_v4(),
-            kind: SymbolKind::Function,
-            name,
-            signature,
-            file_path: self.file_path.clone(),
-            start_line: node.sig.ident.span().start().line,
-            end_line: node.block.brace_token.span.end().line,
-            dependencies: self.current_dependencies.clone(),
-        };
+        let mut py_parser = Parser::new();
+        py_parser.set_language(&tree_sitter_python::language())?;
+        parsers.insert("python".to_string(), py_parser);
 
-        self.symbols.push(symbol);
+        let mut go_parser = Parser::new();
+        go_parser.set_language(&tree_sitter_go::language())?;
+        parsers.insert("go".to_string(), go_parser);
+
+        let mut c_parser = Parser::new();
+        c_parser.set_language(&tree_sitter_c::language())?;
+        parsers.insert("c".to_string(), c_parser);
+
+        let mut cpp_parser = Parser::new();
+        cpp_parser.set_language(&tree_sitter_cpp::language())?;
+        parsers.insert("cpp".to_string(), cpp_parser);
+
+        Ok(Self {
+            parsers,
+            tree_cache: HashMap::new(),
+        })
     }
 
-    fn visit_item_struct(&mut self, node: &'ast syn::ItemStruct) {
-        let name = node.ident.to_string();
-        let signature = format!("struct {} {{ ... }}", name);
-
-        let symbol = CodeSymbol {
-            id: Uuid::new_v4(),
-            kind: SymbolKind::Struct,
-            name,
-            signature,
-            file_path: self.file_path.clone(),
-            start_line: node.ident.span().start().line,
-            end_line: node.brace_token.span.end().line,
-            dependencies: Vec::new(),
+    pub fn parse_file(&mut self, file_path: &Path, source_code: &str) -> Result<Vec<ParsedSymbol>> {
+        let file_extension = file_path.extension().and_then(|s| s.to_str()).unwrap_or("");
+        let lang = match file_extension {
+            "rs" => "rust",
+            "ts" | "tsx" => "typescript",
+            "py" => "python",
+            "go" => "go",
+            "c" | "h" => "c",
+            "cpp" | "hpp" | "cc" | "hh" => "cpp",
+            _ => return Ok(Vec::new()),
         };
 
-        self.symbols.push(symbol);
+        let parser = self.parsers.get_mut(lang).unwrap();
+
+        let old_tree = self.tree_cache.get(file_path.to_str().unwrap());
+
+        let tree = parser.parse(source_code, old_tree).unwrap();
+
+        let mut symbols = Vec::new();
+        let mut cursor = tree.walk();
+
+        self.traverse(&mut cursor, &mut symbols, source_code);
+
+        self.tree_cache.insert(file_path.to_str().unwrap().to_string(), tree);
+
+        Ok(symbols)
     }
 
-    fn visit_item_enum(&mut self, node: &'ast syn::ItemEnum) {
-        let name = node.ident.to_string();
-        let signature = format!("enum {} {{ ... }}", name);
+    fn traverse(&self, cursor: &mut tree_sitter::TreeCursor, symbols: &mut Vec<ParsedSymbol>, source_code: &str) {
+        let node = cursor.node();
 
-        let symbol = CodeSymbol {
-            id: Uuid::new_v4(),
-            kind: SymbolKind::Enum,
-            name,
-            signature,
-            file_path: self.file_path.clone(),
-            start_line: node.ident.span().start().line,
-            end_line: node.brace_token.span.end().line,
-            dependencies: Vec::new(),
-        };
+        let kind = node.kind();
 
-        self.symbols.push(symbol);
-    }
-
-    fn visit_item_trait(&mut self, node: &'ast syn::ItemTrait) {
-        let name = node.ident.to_string();
-        let signature = format!("trait {} {{ ... }}", name);
-
-        let symbol = CodeSymbol {
-            id: Uuid::new_v4(),
-            kind: SymbolKind::Trait,
-            name,
-            signature,
-            file_path: self.file_path.clone(),
-            start_line: node.ident.span().start().line,
-            end_line: node.brace_token.span.end().line,
-            dependencies: Vec::new(),
-        };
-
-        self.symbols.push(symbol);
-    }
-
-    fn visit_path(&mut self, node: &'ast syn::Path) {
-        let path_string = node.to_token_stream().to_string();
-
-        // Filter out common paths
-        if !path_string.starts_with("std::")
-            && !path_string.starts_with("core::")
-            && !path_string.starts_with("self::")
-            && !self.current_dependencies.contains(&path_string)
-        {
-            self.current_dependencies.push(path_string);
+        if let Some(symbol) = self.extract_symbol(node, kind, source_code) {
+            symbols.push(symbol);
         }
+
+        if cursor.goto_first_child() {
+            self.traverse(cursor, symbols, source_code);
+            while cursor.goto_next_sibling() {
+                self.traverse(cursor, symbols, source_code);
+            }
+            cursor.goto_parent();
+        }
+    }
+
+    fn extract_symbol(&self, node: tree_sitter::Node, kind: &str, source_code: &str) -> Option<ParsedSymbol> {
+        match kind {
+            "function_item" | "function_declaration" => {
+                let identifier = node.child_by_field_name("name")?.utf8_text(source_code.as_bytes()).ok()?.to_string();
+                let parameters_node = node.child_by_field_name("parameters")?;
+                let parameters = self.extract_parameters(parameters_node, source_code);
+
+                Some(ParsedSymbol {
+                    identifier,
+                    kind: "function".to_string(),
+                    start_line: node.start_position().row,
+                    end_line: node.end_position().row,
+                    parameters,
+                })
+            }
+            "struct_item" | "class_declaration" => {
+                let identifier = node.child_by_field_name("name")?.utf8_text(source_code.as_bytes()).ok()?.to_string();
+                Some(ParsedSymbol {
+                    identifier,
+                    kind: if kind == "struct_item" { "struct".to_string() } else { "class".to_string() },
+                    start_line: node.start_position().row,
+                    end_line: node.end_position().row,
+                    parameters: Vec::new(),
+                })
+            }
+            "method_declaration" => {
+                let identifier = node.child_by_field_name("name")?.utf8_text(source_code.as_bytes()).ok()?.to_string();
+                let parameters_node = node.child_by_field_name("parameters")?;
+                let parameters = self.extract_parameters(parameters_node, source_code);
+                Some(ParsedSymbol {
+                    identifier,
+                    kind: "method".to_string(),
+                    start_line: node.start_position().row,
+                    end_line: node.end_position().row,
+                    parameters,
+                })
+            }
+            _ => None,
+        }
+    }
+
+    fn extract_parameters(&self, parameters_node: tree_sitter::Node, source_code: &str) -> Vec<String> {
+        let mut parameters = Vec::new();
+        let mut cursor = parameters_node.walk();
+        for child in parameters_node.children(&mut cursor) {
+            if child.kind() == "parameter" || child.kind() == "required_parameter" {
+                if let Some(param_text) = child.utf8_text(source_code.as_bytes()).ok() {
+                    parameters.push(param_text.to_string());
+                }
+            }
+        }
+        parameters
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
 
     #[test]
-    fn test_parse_function() {
+    fn test_parse_rust_function() -> Result<()> {
         let source = r#"
-            pub fn add(a: i32, b: i32) -> i32 {
-                a + b
+            fn my_function(a: i32, b: &str) -> bool {
+                true
             }
         "#;
+        let mut parser = TokenixParser::new()?;
+        let symbols = parser.parse_file(&PathBuf::from("test.rs"), source)?;
 
-        let symbols = RustAstParser::parse_file(&PathBuf::from("test.rs"), source).unwrap();
         assert_eq!(symbols.len(), 1);
-        assert_eq!(symbols[0].kind, SymbolKind::Function);
-        assert_eq!(symbols[0].name, "add");
-        assert!(symbols[0].signature.contains("fn add"));
+        let symbol = &symbols[0];
+        assert_eq!(symbol.identifier, "my_function");
+        assert_eq!(symbol.kind, "function");
+        assert_eq!(symbol.start_line, 1);
+        assert_eq!(symbol.end_line, 3);
+        assert_eq!(symbol.parameters, vec!["a: i32", "b: &str"]);
+
+        Ok(())
     }
 
     #[test]
-    fn test_parse_struct() {
+    fn test_parse_rust_struct() -> Result<()> {
         let source = r#"
-            pub struct User {
-                pub id: u64,
-                pub name: String,
+            struct MyStruct {
+                field1: i32,
+                field2: String,
             }
         "#;
+        let mut parser = TokenixParser::new()?;
+        let symbols = parser.parse_file(&PathBuf::from("test.rs"), source)?;
 
-        let symbols = RustAstParser::parse_file(&PathBuf::from("test.rs"), source).unwrap();
         assert_eq!(symbols.len(), 1);
-        assert_eq!(symbols[0].kind, SymbolKind::Struct);
-        assert_eq!(symbols[0].name, "User");
-    }
+        let symbol = &symbols[0];
+        assert_eq!(symbol.identifier, "MyStruct");
+        assert_eq!(symbol.kind, "struct");
+        assert_eq!(symbol.start_line, 1);
+        assert_eq!(symbol.end_line, 4);
 
-    #[test]
-    fn test_parse_dependencies() {
-        let source = r#"
-            struct User { name: String }
-            pub fn process(user: User) -> String {
-                format!("User: {}", user.name)
-            }
-        "#;
-
-        let symbols = RustAstParser::parse_file(&PathBuf::from("test.rs"), source).unwrap();
-        let function_symbol = symbols.iter().find(|s| s.kind == SymbolKind::Function).unwrap();
-        assert!(function_symbol.dependencies.contains(&"User".to_string()));
-    }
-
-    #[test]
-    fn test_parse_error() {
-        let source = "invalid rust code {{{";
-        let result = RustAstParser::parse_file(&PathBuf::from("test.rs"), source);
-        assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), OxideError::AstParseError { .. }));
+        Ok(())
     }
 }

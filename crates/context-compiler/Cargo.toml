@@ -4,12 +4,23 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-syn = { version = "2.0", features = ["full", "extra-traits", "visit"] }
-quote = "1.0"
-proc-macro2 = "1.0"
+tree-sitter = "0.22"
+tree-sitter-rust = "0.21"
+tree-sitter-typescript = "0.21"
+tree-sitter-python = "0.21"
+tree-sitter-go = "0.21"
+tree-sitter-c = "0.21"
+tree-sitter-cpp = "0.21"
 uuid = { version = "1.23", features = ["v4", "serde"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 core = { path = "../core" }
+thiserror = "1.0"
+log = "0.4"
+async-trait = "0.1"
 tempfile = "3"
+anyhow = "1.0"
 petgraph = "0.6"
+
+[build-dependencies]
+cc = "1.0"
