@@ -1,16 +1,22 @@
 [package]
 name = "oxide-tech-ide"
 version = "0.1.0"
-description = "A Tauri App"
+description = "next gen IDE"
 authors = ["you"]
-edition = "2021"
+edition = "2024"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = [
+    ".",
+    "crates/superhq",
+    "crates/vibe-kanban",
+    "crates/polypore",
+    "crates/optio",
+    "crates/context-compiler"
+]
+resolver = "2"
 
 [lib]
-# The `_lib` suffix may seem redundant but it is necessary
-# to make the lib name unique and wouldn't conflict with the bin name.
-# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "oxide_tech_ide_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
@@ -20,13 +26,59 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-tokio = { version = "1", features = ["full"] }
-chrono = { version = "0.4", features = ["serde"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+chrono = { workspace = true }
 mimalloc = "0.1.52"
 async-recursion = "1.1.1"
 
+[workspace.dependencies]
+tokio = { version = "1.52", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1.0"
+
+# reqwest dependency moved to workspace.dependencies
+syn = { version = "2.0", features = ["full", "extra-traits", "visit"] }
+quote = "1.0"
+fastembed = "5.16"
+notify = "8.0"
+uuid = { version = "1.23", features = ["v4", "v5"] }
+futures-util = "0.3"
+select = "0.6"
+surrealdb = { version = "3", features = [
+    "kv-surrealkv",
+    "kv-mem",
+    "protocol-ws",
+] }
+surrealdb-types = "3.1.5"
+regex = "1"
+proc-macro2 = { version = "1.0", features = ["span-locations"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["json"] }
+qdrant-client = "1.13"
+chrono = { version = "0.4.39", features = ["serde"] }
+prometheus = "0.14.0"
+quinn = "0.11"
+h3 = "0.0.8"
+h3-quinn = "0.0.10"
+rustls = { version = "0.23", features = ["ring"] }
+toml = "1.1.2"
+thiserror = "2.0"
+nix = { version = "0.31.3", features = ["signal", "process", "resource"] }
+
+
+actix-web = { version = "4.13", default-features = false, features = [
+    "macros",
+    "compress-gzip",
+    "compress-zstd",
+    "http2",
+    "cookies",
+] }
+rmcp = { version = "1.7.0", features = ["server", "transport-io"] }
+reqwest = { version = "0.13.4", features = ["json", "stream", "rustls-tls"] }
+tokio-stream = "0.1"
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
 [profile.release]
