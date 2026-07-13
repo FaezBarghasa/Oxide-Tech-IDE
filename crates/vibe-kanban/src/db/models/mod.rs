@@ -1,3 +1,3 @@
 pub mod ast;
-pub mod code_node;
+pub mod errors;
 pub mod task;

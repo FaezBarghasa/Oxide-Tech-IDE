@@ -1,40 +1,41 @@
 use surrealdb::engine::any::Any;
 use surrealdb::Surreal;
-use anyhow::Result;
+use crate::db::models::errors::DatabaseError;
 
-pub struct Engrym;
+pub struct EpisodicMemory {
+    db: Surreal<Any>,
+}
 
-impl Engrym {
-    pub async fn create_schema(db: &Surreal<Any>) -> Result<()> {
-        db.query("DEFINE TABLE episodic_memory SCHEMAFULL;").await?;
-        db.query("DEFINE FIELD compiler_error_log ON TABLE episodic_memory TYPE string;").await?;
-        db.query("DEFINE FIELD resolution_diff ON TABLE episodic_memory TYPE string;").await?;
-        db.query("DEFINE FIELD embedding ON TABLE episodic_memory TYPE array<float>;").await?;
-        db.query("DEFINE INDEX embedding_index ON TABLE episodic_memory FIELDS embedding;").await?;
+impl EpisodicMemory {
+    pub async fn new(db: Surreal<Any>) -> Self {
+        Self { db }
+    }
+
+    pub async fn define_schema(&self) -> Result<(), DatabaseError> {
+        self.db.query("DEFINE TABLE episodic_memory SCHEMAFULL;").await?;
+        self.db.query("DEFINE FIELD compiler_error_log ON TABLE episodic_memory TYPE string;").await?;
+        self.db.query("DEFINE FIELD resolution_diff ON TABLE episodic_memory TYPE string;").await?;
+        self.db.query("DEFINE FIELD embedding ON TABLE episodic_memory TYPE array<float>;").await?;
         Ok(())
     }
 
-    pub async fn store_episode(db: &Surreal<Any>, error: &str, diff: &str, embedding: &[f32]) -> Result<()> {
-        let sql = "CREATE episodic_memory CONTENT { compiler_error_log: $error, resolution_diff: $diff, embedding: $embedding };";
-
-        db.query(sql)
+    pub async fn store_episode(&self, error: &str, diff: &str, embedding: &[f32]) -> Result<(), DatabaseError> {
+        let query = "CREATE episodic_memory CONTENT { compiler_error_log: $error, resolution_diff: $diff, embedding: $embedding };";
+        self.db.query(query)
             .bind(("error", error))
             .bind(("diff", diff))
             .bind(("embedding", embedding))
             .await?;
-
         Ok(())
     }
 
-    pub async fn search_similar_episodes(db: &Surreal<Any>, target_embedding: &[f32], limit: usize) -> Result<Vec<serde_json::Value>> {
-        let sql = "SELECT *, vector::similarity::cosine(embedding, $target) AS score FROM episodic_memory ORDER BY score DESC LIMIT $limit;";
-
-        let mut result = db.query(sql)
-            .bind(("target", target_embedding))
+    pub async fn search_similar_episodes(&self, target_embedding: &[f32], limit: usize) -> Result<Vec<(String, String)>, DatabaseError> {
+        let query = "SELECT compiler_error_log, resolution_diff FROM episodic_memory ORDER BY vector::similarity::cosine(embedding, $embedding) DESC LIMIT $limit;";
+        let mut result = self.db.query(query)
+            .bind(("embedding", target_embedding))
             .bind(("limit", limit))
             .await?;
-
-        let episodes: Vec<serde_json::Value> = result.take(0)?;
+        let episodes: Vec<(String, String)> = result.take(0)?;
         Ok(episodes)
     }
 }
@@ -43,30 +44,34 @@ impl Engrym {
 mod tests {
     use super::*;
     use surrealdb::engine::any::connect;
-    use surrealdb::opt::Mem;
+    use surrealdb::opt::auth::Root;
 
-    async fn setup_db() -> Result<Surreal<Any>> {
-        let db = connect(Mem).await?;
-        db.use_ns("test").use_db("test").await?;
-        Engrym::create_schema(&db).await?;
-        Ok(db)
+    async fn setup_db() -> Surreal<Any> {
+        let db = connect("mem://").await.unwrap();
+        db.signin(Root {
+            username: "root",
+            password: "root",
+        }).await.unwrap();
+        db.use_ns("test").use_db("test").await.unwrap();
+        db
     }
 
     #[tokio::test]
-    async fn test_store_and_search_episode() -> Result<()> {
-        let db = setup_db().await?;
+    async fn test_episode_storage_and_search() {
+        let db = setup_db().await;
+        let memory = EpisodicMemory::new(db).await;
+        memory.define_schema().await.unwrap();
 
         let embedding1 = vec![1.0, 0.0, 0.0];
         let embedding2 = vec![0.0, 1.0, 0.0];
 
-        Engrym::store_episode(&db, "error1", "diff1", &embedding1).await?;
-        Engrym::store_episode(&db, "error2", "diff2", &embedding2).await?;
+        memory.store_episode("error1", "diff1", &embedding1).await.unwrap();
+        memory.store_episode("error2", "diff2", &embedding2).await.unwrap();
 
-        let similar_episodes = Engrym::search_similar_episodes(&db, &embedding1, 1).await?;
+        let search_embedding = vec![0.9, 0.1, 0.0];
+        let similar_episodes = memory.search_similar_episodes(&search_embedding, 1).await.unwrap();
 
         assert_eq!(similar_episodes.len(), 1);
-        assert_eq!(similar_episodes[0]["compiler_error_log"].as_str(), Some("error1"));
-
-        Ok(())
+        assert_eq!(similar_episodes[0].0, "error1");
     }
 }

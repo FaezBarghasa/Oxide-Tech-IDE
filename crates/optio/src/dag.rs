@@ -1,3 +1,4 @@
+use actix_web::{web, App, HttpServer, Responder, HttpResponse};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use petgraph::graph::{DiGraph, NodeIndex};
@@ -21,7 +22,7 @@ pub struct DAGNode {
     pub execution_cmd: String,
     pub validation_script: String,
     pub dependencies: Vec<String>,
-    pub state: NodeState,
+    pub state: String, // "PENDING", "RUNNING", "VERIFIED", "FAILED"
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,10 +42,12 @@ impl DagExecutor {
     }
 
     pub async fn execute_workflow(&self, workflow: Workflow) -> Result<()> {
+        self.db.create(("workflow", &workflow.id)).content(&workflow).await?;
+
         let mut graph = DiGraph::<DAGNode, ()>::new();
         let mut node_map = HashMap::new();
 
-        for node in workflow.nodes {
+        for node in &workflow.nodes {
             let index = graph.add_node(node.clone());
             node_map.insert(node.id.clone(), index);
         }
@@ -60,14 +63,46 @@ impl DagExecutor {
         let mut topo = Topo::new(&graph);
         while let Some(nx) = topo.next(&graph) {
             let node = &graph[nx];
+            self.update_node_state(&workflow.id, &node.id, "RUNNING").await?;
             // In a real implementation, we would execute the node here.
-            // For now, we just print the node.
             println!("Executing node: {:?}", node);
+            self.update_node_state(&workflow.id, &node.id, "VERIFIED").await?;
         }
 
         Ok(())
     }
+
+    async fn update_node_state(&self, workflow_id: &str, node_id: &str, state: &str) -> Result<()> {
+        let query = "UPDATE workflow SET nodes[WHERE id = $node_id].state = $state WHERE id = $workflow_id;";
+        self.db.query(query)
+            .bind(("node_id", node_id))
+            .bind(("state", state))
+            .bind(("workflow_id", workflow_id))
+            .await?;
+        Ok(())
+    }
 }
+
+async fn start_workflow(executor: web::Data<DagExecutor>, workflow: web::Json<Workflow>) -> impl Responder {
+    match executor.execute_workflow(workflow.into_inner()).await {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
+}
+
+pub async fn run_server(db: Surreal<Any>) -> Result<()> {
+    let executor = web::Data::new(DagExecutor::new(db));
+    HttpServer::new(move || {
+        App::new()
+            .app_data(executor.clone())
+            .route("/workflow", web::post().to(start_workflow))
+    })
+    .bind("127.0.0.1:8080")?
+    .run()
+    .await?;
+    Ok(())
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -95,21 +130,21 @@ mod tests {
                     execution_cmd: "echo A".to_string(),
                     validation_script: "true".to_string(),
                     dependencies: vec![],
-                    state: NodeState::Pending,
+                    state: "PENDING".to_string(),
                 },
                 DAGNode {
                     id: "task_b".to_string(),
                     execution_cmd: "echo B".to_string(),
                     validation_script: "true".to_string(),
                     dependencies: vec!["task_a".to_string()],
-                    state: NodeState::Pending,
+                    state: "PENDING".to_string(),
                 },
                 DAGNode {
                     id: "task_c".to_string(),
                     execution_cmd: "echo C".to_string(),
                     validation_script: "true".to_string(),
                     dependencies: vec!["task_a".to_string()],
-                    state: NodeState::Pending,
+                    state: "PENDING".to_string(),
                 },
             ],
         };
