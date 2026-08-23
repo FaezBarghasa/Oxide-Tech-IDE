@@ -1,9 +1,10 @@
 use petgraph::stable_graph::{StableGraph, NodeIndex};
 use petgraph::algo::toposort;
 use petgraph::Direction;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use uuid::Uuid;
 use serde::{Serialize, Deserialize};
+use crate::errors::{OxideError, OxideResult};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TaskStatus {
@@ -91,7 +92,6 @@ impl SwarmDag {
 
         self.graph.add_edge(from_index, to_index, ());
 
-        // Update the task's dependencies list
         if let Some((_, task)) = self.node_map.get_mut(&to_task_id) {
             task.dependencies.push(from_task_id);
         }
@@ -100,16 +100,14 @@ impl SwarmDag {
     }
 
     pub fn validate_and_sort(&self) -> OxideResult<Vec<Uuid>> {
-        // Check for cycles using topological sort
         let sorted = toposort(&self.graph, None).map_err(|cycle| {
             let cycle_node = cycle.node_id();
-            let cycle_task_id = self.index_to_id.get(&cycle_node).unwrap();
+            let cycle_task_id = self.index_to_id.get(&cycle_node).copied().unwrap_or_default();
             OxideError::DagCycleError {
                 cycle_description: format!("Cycle detected involving task {}", cycle_task_id),
             }
         })?;
 
-        // Convert NodeIndex back to Uuid
         let sorted_ids: Vec<Uuid> = sorted
             .iter()
             .map(|idx| *self.index_to_id.get(idx).unwrap())
@@ -127,15 +125,12 @@ impl SwarmDag {
     }
 
     pub fn get_ready_tasks(&self) -> Vec<Uuid> {
-        // Find all tasks with status == Pending and all dependencies completed
         self.node_map
             .iter()
             .filter(|(_, (_, task))| {
                 if task.status != TaskStatus::Pending {
                     return false;
                 }
-
-                // Check if all dependencies are completed
                 task.dependencies.iter().all(|dep_id| {
                     self.node_map
                         .get(dep_id)
@@ -164,8 +159,68 @@ impl SwarmDag {
             task.status == TaskStatus::Completed || task.status == TaskStatus::Failed
         })
     }
+}
 
-    pub fn has_failures(&self) -> bool {
-        self.node_map.values().any(|(_, task)| task.status == TaskStatus::Failed)
+pub struct WaveScheduler {
+    pub waves: Vec<Vec<Uuid>>,
+}
+
+impl WaveScheduler {
+    pub fn new(dag: &SwarmDag) -> OxideResult<Self> {
+        let sorted_ids = dag.validate_and_sort()?;
+        let mut in_degree: HashMap<Uuid, usize> = HashMap::new();
+        for task_id in &sorted_ids {
+            in_degree.insert(*task_id, 0);
+        }
+
+        for task_id in &sorted_ids {
+            let dependents = dag.get_dependents(task_id);
+            for dep_id in dependents {
+                *in_degree.entry(dep_id).or_insert(0) += 1;
+            }
+        }
+
+        let mut waves: Vec<Vec<Uuid>> = Vec::new();
+        let mut queue: VecDeque<Uuid> = VecDeque::new();
+
+        for (task_id, &degree) in &in_degree {
+            if degree == 0 {
+                queue.push_back(*task_id);
+            }
+        }
+
+        while !queue.is_empty() {
+            let mut current_wave = Vec::new();
+            let mut next_queue: VecDeque<Uuid> = VecDeque::new();
+
+            while let Some(task_id) = queue.pop_front() {
+                current_wave.push(task_id);
+                for dep_id in dag.get_dependents(&task_id) {
+                    if let Some(degree) = in_degree.get_mut(&dep_id) {
+                        *degree -= 1;
+                        if *degree == 0 {
+                            next_queue.push_back(dep_id);
+                        }
+                    }
+                }
+            }
+
+            waves.push(current_wave);
+            queue = next_queue;
+        }
+
+        Ok(Self { waves })
+    }
+
+    pub fn get_total_waves(&self) -> usize {
+        self.waves.len()
+    }
+
+    pub fn get_wave(&self, wave_index: usize) -> Option<&Vec<Uuid>> {
+        self.waves.get(wave_index)
+    }
+
+    pub fn get_max_parallelism(&self) -> usize {
+        self.waves.iter().map(|w| w.len()).max().unwrap_or(0)
     }
 }

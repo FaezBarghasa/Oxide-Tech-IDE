@@ -26,7 +26,6 @@ impl ANSIStreamCleaner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use criterion::Criterion;
 
     #[test]
     fn test_strip_ansi_codes() {
@@ -34,11 +33,4 @@ mod tests {
         let expected = "Hello, World!";
         assert_eq!(ANSIStreamCleaner::strip_ansi_codes(input), expected);
     }
-
-    fn ansi_cleaner_benchmark(c: &mut Criterion) {
-        let input = "\x1B[31mHello\x1B[0m, \x1B[32mWorld\x1B[0m!".repeat(1000);
-        c.bench_function("strip_ansi", |b| b.iter(|| ANSIStreamCleaner::strip_ansi_codes(&input)));
-    }
-
-    criterion::criterion_group!(benches, ansi_cleaner_benchmark);
 }

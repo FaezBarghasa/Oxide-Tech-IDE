@@ -1,2 +1,27 @@
+pub mod approvals;
+pub mod context_compiler;
+pub mod cuda_discovery;
+pub mod dag;
 pub mod errors;
+pub mod loop_engine;
+pub mod plain_text_processor;
+pub mod pty_adapter;
+pub mod runtime;
+pub mod sandbox;
+pub mod security_broker;
 pub mod telemetry;
+pub mod worktree_manager;
+
+pub use approvals::{MergeDecision, SwarmCritic, TaskState, Workflow};
+pub use context_compiler::{SymbolChunk, TokenixEngine};
+pub use cuda_discovery::{discover_cuda, CudaDeviceDetails, CudaDiscoveryResult};
+pub use dag::{AgentType, SwarmDag, TaskNode, TaskStatus, WaveScheduler};
+pub use errors::{OxideError, OxideResult};
+pub use loop_engine::{EorPhase, LoopEngine, ObservationResult, TaskContext};
+pub use plain_text_processor::ANSIStreamCleaner;
+pub use pty_adapter::PtyTerminalSession;
+pub use runtime::build_hyper_runtime;
+pub use sandbox::{ExecutionResult, SandboxCleanup, SandboxExecutor};
+pub use security_broker::{AskpassBroker, SecretBroker};
+pub use telemetry::{LogEvent, TelemetryPipeline};
+pub use worktree_manager::WorktreeManager;

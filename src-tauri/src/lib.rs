@@ -1,4 +1,5 @@
 pub mod handlers {
+    pub mod core_ops;
     pub mod file_ops;
     pub mod process;
     pub mod system;
@@ -15,6 +16,10 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(handlers::rag::ASTIndexState::new())
         .invoke_handler(tauri::generate_handler![
+            handlers::core_ops::discover_cuda_devices,
+            handlers::core_ops::parse_source_symbols,
+            handlers::core_ops::create_task_worktree,
+            handlers::core_ops::validate_swarm_dag_tasks,
             handlers::file_ops::read_workspace_file,
             handlers::file_ops::save_workspace_file,
             handlers::file_ops::list_directory_tree,

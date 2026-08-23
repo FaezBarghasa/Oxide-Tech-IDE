@@ -68,6 +68,9 @@ pub enum OxideError {
     #[error("TLS certificate error: {message}")]
     TlsCertificateError { message: String },
 
+    #[error("CUDA error: {0}")]
+    CudaError(String),
+
     // Generic Errors
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
