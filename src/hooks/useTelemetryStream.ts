@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { useAppDispatch } from '../store/hooks';
-import { updateAgentPhase, appendLog } from '../store/swarmSlice';
+import { useSwarmStore } from '../state/swarmStore';
 
 export function useTelemetryStream(url: string) {
-  const dispatch = useAppDispatch();
+  const { updateAgentPhase, appendLog } = useSwarmStore();
   const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
@@ -13,20 +12,28 @@ export function useTelemetryStream(url: string) {
     eventSourceRef.current = eventSource;
 
     eventSource.addEventListener('agent-state-changed', (event) => {
-      const data = JSON.parse(event.data);
-      dispatch(updateAgentPhase({
-        id: data.agent_id,
-        phase: data.phase,
-        iteration: data.iteration,
-      }));
+      try {
+        const data = JSON.parse(event.data);
+        updateAgentPhase({
+          id: data.agent_id,
+          phase: data.phase,
+          iteration: data.iteration,
+        });
+      } catch (err) {
+        console.error('Failed to parse agent-state-changed event:', err);
+      }
     });
 
     eventSource.addEventListener('agent-log', (event) => {
-      const data = JSON.parse(event.data);
-      dispatch(appendLog({
-        id: data.agent_id,
-        log: data.message,
-      }));
+      try {
+        const data = JSON.parse(event.data);
+        appendLog({
+          id: data.agent_id,
+          log: data.message,
+        });
+      } catch (err) {
+        console.error('Failed to parse agent-log event:', err);
+      }
     });
 
     eventSource.onerror = (error) => {
@@ -37,5 +44,5 @@ export function useTelemetryStream(url: string) {
     return () => {
       eventSource.close();
     };
-  }, [url, dispatch]);
+  }, [url, updateAgentPhase, appendLog]);
 }

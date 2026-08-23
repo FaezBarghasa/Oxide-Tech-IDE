@@ -6,7 +6,7 @@
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 // Imports
-use tracing_subscriber::{fmt, EnvFilter};
+use tracing_subscriber::EnvFilter;
 
 fn main() {
     // Initialize logging
@@ -17,8 +17,6 @@ fn main() {
     // Log startup
     tracing::info!("Starting Oxide-Tech-IDE");
 
-    // Run Tauri
-    tauri::Builder::default()
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    // Run Tauri Application
+    oxide_tech_ide_lib::run();
 }

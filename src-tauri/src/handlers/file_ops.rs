@@ -1,7 +1,54 @@
-use std::path::Path;
-use serde::Serialize;
+use std::path::{Path, PathBuf};
+use serde::{Deserialize, Serialize};
 use tokio::fs;
 use async_recursion::async_recursion;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileEntry {
+    pub path: String,
+    pub name: String,
+    pub is_dir: bool,
+    pub children: Option<Vec<FileEntry>>,
+}
+
+#[tauri::command]
+pub async fn read_workspace_file(path: String) -> Result<String, String> {
+    fs::read_to_string(&path)
+        .await
+        .map_err(|e| format!("Failed to read file {}: {}", path, e))
+}
+
+#[tauri::command]
+pub async fn save_workspace_file(path: String, content: String) -> Result<(), String> {
+    if let Some(parent) = Path::new(&path).parent() {
+        if !parent.exists() {
+            let _ = fs::create_dir_all(parent).await;
+        }
+    }
+    fs::write(&path, content)
+        .await
+        .map_err(|e| format!("Failed to write file {}: {}", path, e))
+}
+
+#[tauri::command]
+pub async fn list_directory_tree(dir_path: String) -> Result<Vec<FileEntry>, String> {
+    let mut entries = Vec::new();
+    let mut read_dir = fs::read_dir(&dir_path).await.map_err(|e| e.to_string())?;
+
+    while let Ok(Some(entry)) = read_dir.next_entry().await {
+        let path = entry.path();
+        let metadata = entry.metadata().await.map_err(|e| e.to_string())?;
+        let is_dir = metadata.is_dir();
+
+        entries.push(FileEntry {
+            path: path.to_string_lossy().to_string(),
+            name: entry.file_name().to_string_lossy().to_string(),
+            is_dir,
+            children: if is_dir { None } else { None },
+        });
+    }
+    Ok(entries)
+}
 
 #[derive(Serialize)]
 pub struct FileTreeNode {

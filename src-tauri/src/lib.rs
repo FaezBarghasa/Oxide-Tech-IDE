@@ -15,6 +15,9 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(handlers::rag::ASTIndexState::new())
         .invoke_handler(tauri::generate_handler![
+            handlers::file_ops::read_workspace_file,
+            handlers::file_ops::save_workspace_file,
+            handlers::file_ops::list_directory_tree,
             handlers::file_ops::read_file,
             handlers::file_ops::write_file,
             handlers::file_ops::read_dir,

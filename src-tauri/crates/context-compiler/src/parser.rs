@@ -1,8 +1,33 @@
 use std::collections::HashMap;
-use tree_sitter::{Parser, Tree, Node};
+use std::path::PathBuf;
+use serde::{Serialize, Deserialize};
 use anyhow::Result;
+use uuid::Uuid;
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum SymbolKind {
+    Function,
+    Method,
+    Struct,
+    Enum,
+    Trait,
+    Module,
+    Class,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CodeSymbol {
+    pub id: Uuid,
+    pub name: String,
+    pub kind: SymbolKind,
+    pub signature: String,
+    pub file_path: PathBuf,
+    pub start_line: usize,
+    pub end_line: usize,
+    pub dependencies: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ParsedSymbol {
     pub identifier: String,
     pub kind: String, // "class", "struct", "function", "method"
@@ -12,8 +37,14 @@ pub struct ParsedSymbol {
 }
 
 pub struct TokenixParser {
-    parsers: HashMap<String, Parser>,
-    trees: HashMap<String, Tree>,
+    parsers: HashMap<String, tree_sitter::Parser>,
+    trees: HashMap<String, tree_sitter::Tree>,
+}
+
+impl Default for TokenixParser {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl TokenixParser {
@@ -24,12 +55,11 @@ impl TokenixParser {
         }
     }
 
-    fn get_parser(&mut self, language: &str) -> Result<&mut Parser> {
+    fn get_parser(&mut self, language: &str) -> Result<&mut tree_sitter::Parser> {
         if !self.parsers.contains_key(language) {
-            let mut parser = Parser::new();
+            let mut parser = tree_sitter::Parser::new();
             let lang = match language {
-                "rust" => tree_sitter_rust::language(),
-                // Add other languages here
+                "rust" => tree_sitter_rust::LANGUAGE.into(),
                 _ => return Err(anyhow::anyhow!("Unsupported language")),
             };
             parser.set_language(&lang)?;
@@ -40,7 +70,7 @@ impl TokenixParser {
 
     pub fn parse_file(&mut self, file_path: &str, source_code: &str, language: &str) -> Result<Vec<ParsedSymbol>> {
         let parser = self.get_parser(language)?;
-        let tree = parser.parse(source_code, None).unwrap();
+        let tree = parser.parse(source_code, None).ok_or_else(|| anyhow::anyhow!("Failed to parse source"))?;
         self.trees.insert(file_path.to_string(), tree.clone());
 
         let mut symbols = Vec::new();
@@ -53,17 +83,16 @@ impl TokenixParser {
         let node = cursor.node();
 
         if node.kind() == "function_item" {
-            let identifier = node.child_by_field_name("name").unwrap();
-            let parameters = node.child_by_field_name("parameters").unwrap();
-
-            let symbol = ParsedSymbol {
-                identifier: identifier.utf8_text(source_code.as_bytes()).unwrap().to_string(),
-                kind: "function".to_string(),
-                start_line: node.start_position().row,
-                end_line: node.end_position().row,
-                parameters: vec![], // Simplified for this example
-            };
-            symbols.push(symbol);
+            if let Some(identifier) = node.child_by_field_name("name") {
+                let symbol = ParsedSymbol {
+                    identifier: identifier.utf8_text(source_code.as_bytes()).unwrap_or("").to_string(),
+                    kind: "function".to_string(),
+                    start_line: node.start_position().row,
+                    end_line: node.end_position().row,
+                    parameters: vec![],
+                };
+                symbols.push(symbol);
+            }
         }
 
         if cursor.goto_first_child() {

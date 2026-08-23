@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+./graphify-out/
+src-tauri/crates/superhq/target/
+src-tauri/crates/polypore/target/
+src-tauri/crates/core/target/
+src-tauri/target/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
