@@ -11,6 +11,7 @@ import { SlintPreviewToolWindow } from '../../tools/SlintPreviewToolWindow';
 import { EmbeddedSimToolWindow } from '../../tools/EmbeddedSimToolWindow';
 import { IcedInspectorToolWindow } from '../../tools/IcedInspectorToolWindow';
 import { DebuggerToolWindow } from '../../tools/DebuggerToolWindow';
+import { MQTTTerminalToolWindow } from '../../tools/MQTTTerminalToolWindow';
 import { CodeEditor } from '../../editor/CodeEditor';
 import { TerminalPanel } from '../../terminal/TerminalPanel';
 import { GitPanel } from '../../git/GitPanel';
@@ -100,6 +101,13 @@ const defaultLayoutJson: IJsonModel = {
           id: 'debug',
           name: 'Debug',
           component: 'debug',
+          enableClose: false,
+        },
+        {
+          type: 'tab',
+          id: 'mqtt_terminal',
+          name: 'MQTT Terminal',
+          component: 'mqtt_terminal',
           enableClose: false,
         },
         {
@@ -204,6 +212,8 @@ export function DockLayoutEngine() {
     switch (component) {
       case 'debug':
         return <DebuggerToolWindow />;
+      case 'mqtt_terminal':
+        return <MQTTTerminalToolWindow />;
       case 'project':
         return <ProjectToolWindow />;
       case 'cargo':

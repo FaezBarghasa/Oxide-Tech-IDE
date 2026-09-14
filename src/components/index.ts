@@ -34,6 +34,7 @@ export * from './tools/SlintPreviewToolWindow';
 export * from './tools/EmbeddedSimToolWindow';
 export * from './tools/IcedInspectorToolWindow';
 export * from './tools/DebuggerToolWindow';
+export * from './tools/MQTTTerminalToolWindow';
 export * from './studio/ModelCatalog';
 export * from './studio/CanvasCodeGraph';
 export * from './orchestration/TimelineScrubber';

@@ -7,12 +7,25 @@
 ## 📸 Screenshots & UI Showcase
 
 ### 1. Full-Stack Visual Workstation & Spatial Docking
+![Live Visual Layout](docs/assets/rustrover_live_test.png)
 ![Visual Workstation Layout](docs/assets/rustrover_visual_workstation.png)
 
-* **Top Navigation Bar**: JetBrains New UI top menu hierarchy (`File`, `Edit`, `View`, `Navigate`, `Code`, `Refactor`, `Build`, `Run`, `Tools`, `VCS`, `Help`), unified Run Configuration widget (`Cargo run`, `Cargo check`, `Cargo clippy`, `Cargo test`, `Cargo bench`, `Playwright: Run All E2E`, `Slint: Live Preview`, `Embedded: Hardware Sim`, `Iced: Run with Inspector`), Play (`Shift+F10`), Debug (`Shift+F9`), Stop (`Ctrl+F2`), and Search Everywhere (`Shift+Shift`).
+* **Top Navigation Bar & Exhaustive Menus**: JetBrains RustRover 2026.2 top menu hierarchy with deep cascading submenus and standard keybindings:
+  - **File**: `New` (Project, Module, Package, File `Alt+Insert`, Directory, Scratch File `Ctrl+Alt+Shift+Insert`, From Existing Sources), `Open...` (`Ctrl+O`), `Open Recent`, `Close Project`, `Settings` (`Ctrl+Alt+S`), `Project Structure` (`Ctrl+Alt+Shift+S`), `Save All` (`Ctrl+S`), `Synchronize` (`Ctrl+Alt+Y`), `Reload All from Disk`, `Manage IDE Settings` (Import/Export/Restore), `Invalidate Caches...`, `Repair IDE`, `Power Save Mode`, `Print...`, `Exit` (`Ctrl+Q`).
+  - **Edit**: `Undo` (`Ctrl+Z`), `Redo` (`Ctrl+Shift+Z`), `Cut` (`Ctrl+X`), `Copy` (`Ctrl+C`), `Copy Path/Reference` (Absolute, File Name, Content Root, Source Root, Repo Root, GitHub URL, Copy Reference `Ctrl+Alt+Shift+C`), `Paste` (`Ctrl+V`), `Paste from History...` (`Ctrl+Shift+V`), `Select All` (`Ctrl+A`), `Delete`, `Find` (Find `Ctrl+F`, Replace `Ctrl+R`, Find in Files `Ctrl+Shift+F`, Replace in Files `Ctrl+Shift+R`, Search Structurally), `Search Everywhere` (`Shift+Shift`), `Toggle Case` (`Ctrl+Shift+U`), `Join Lines` (`Ctrl+Shift+J`), `Split Line` (`Ctrl+Enter`), `Extend/Shrink Selection` (`Ctrl+W`/`Ctrl+Shift+W`), `Column Selection Mode` (`Alt+Shift+Insert`), `Bookmarks` (Toggle `F11`, With Mnemonic `Ctrl+F11`, Show `Shift+F11`), `Encoding` (UTF-8, Windows-1252, ISO-8859-1), `Line Separators` (LF, CRLF, CR).
+  - **View**: `Appearance` (Navigation Bar, Status Bar, Tool Window Bars, Toolbar, Distraction Free / Zen Mode, Breadcrumbs, Indent Guides, Line Numbers, Inlay Hints), `Tool Windows` (Project `Alt+1`, Cargo `Cmd+F11`, Structure `Alt+7`, Favorites `Alt+2`, Run `Alt+4`, Debug `Alt+5`, Terminal `Alt+F12`, Version Control `Alt+9`, Problems `Alt+6`, AI Assistant, Notifications `Alt+0`, MQTT Terminal, Playwright, Slint, Embedded Sim, Iced Inspector), `Quick Documentation` (`Ctrl+Q`), `Parameter Info` (`Ctrl+P`), `Active Editor` (Go to Line/Col `Ctrl+G`, Select In `Alt+F1`).
+  - **Navigate**: `Class / Struct...` (`Ctrl+N`), `File...` (`Ctrl+Shift+N`), `Symbol...` (`Ctrl+Alt+Shift+N`), `Recent Files` (`Ctrl+E`), `Recent Locations` (`Ctrl+Shift+E`), `Last Edit Location` (`Ctrl+Shift+Backspace`), `Back` (`Ctrl+Alt+Left`), `Forward` (`Ctrl+Alt+Right`), `Declaration` (`Ctrl+B`), `Implementation(s)` (`Ctrl+Alt+B`), `Type Declaration` (`Ctrl+Shift+B`), `Super Method` (`Ctrl+U`), `Test` (`Ctrl+Shift+T`), `Call/Method/Type Hierarchy` (`Ctrl+Alt+H` / `Ctrl+Shift+H` / `Ctrl+H`), `File Structure Popup` (`Ctrl+F12`).
+  - **Code**: `Generate...` (`Alt+Insert`: Constructor, Getter/Setter, ToString, Equals/HashCode, Override/Implement/Delegate Methods, Test Method, Rust Derive Macro, Impl Block), `Override Methods...` (`Ctrl+O`), `Implement Methods...` (`Ctrl+I`), `Surround With...` (`Ctrl+Alt+T`: if/else, while, match, unsafe, loop), `Comment Line/Block` (`Ctrl+/` / `Ctrl+Shift+/`), `Reformat Code` (`Ctrl+Alt+L`), `Optimize Imports` (`Ctrl+Alt+O`), `Auto-Indent Lines` (`Ctrl+Alt+I`), `Inspect Code...` (Clippy), `Run Inspection by Name...`.
+  - **Refactor**: `Refactor This...` (`Ctrl+Alt+Shift+T`), `Rename...` (`Shift+F6`), `Change Signature...` (`Ctrl+F6`), `Type Migration...`, `Move...` (`F6`), `Copy...` (`F5`), `Safe Delete...` (`Alt+Delete`), `Extract` (Variable `Ctrl+Alt+V`, Field `Ctrl+Alt+F`, Constant `Ctrl+Alt+C`, Parameter `Ctrl+Alt+P`, Method `Ctrl+Alt+M`), `Inline...` (`Ctrl+Alt+N`), `Invert Boolean`, `Split/Merge If`.
+  - **Build**: `Build Project` (`Ctrl+F9`), `Rebuild Project`, `Cargo Check` (`Shift+F10`), `Cargo Clippy`, `Compile`, `Clean Project`, `Build Artifacts`.
+  - **Run**: `Run` (`Shift+F10`), `Debug` (`Shift+F9`), `Run/Debug Context Configuration` (`Ctrl+Shift+F10` / `Ctrl+Shift+F9`), `Stop` (`Ctrl+F2`), `Resume` (`F9`), `Pause`, `Step Over` (`F8`), `Step Into` (`F7`), `Step Out` (`Shift+F8`), `View Breakpoints...` (`Ctrl+Shift+F8`), `Mute Breakpoints`, `Run with Coverage`, `Profile...`.
+  - **Tools**: `Cargo` (Build, Run, Test, Check, Clippy, Fmt, Doc, Clean, Add Dependency, Reload Project), `Rust` (Expand Macro Recursively, Show MIR/HIR, Rustfmt File/Project, Rust REPL, Share in Playground), `Hardware & Debuggers` (probe-rs STM32F4 Flash & Run, OpenOCD GDB Server, QEMU Cortex-M Emulator), `MQTT 5.0 Terminal`, `Docker` (Connect, Build, Run Container).
+  - **VCS**: `Update Project...` (`Ctrl+T`), `Commit...` (`Ctrl+K`), `Push...` (`Ctrl+Shift+K`), `Pull...`, `Branches...` (New Branch, Checkout, Merge, Rebase), `Stash / Unstash Changes...`, `Show Git History` (`Alt+9`), `Compare with Branch / Clipboard`, `Rollback Changes...`.
+  - **Window**: `Split Vertically / Horizontally`, `Unsplit / Unsplit All`, `Restore Default Layout`, `Store Current Layout as Default`, `Minimize / Zoom Current Window`.
+  - **Help**: `Help Contents` (`F1`), `Tip of the Day`, `What's New in RustRover 2026.2`, `Keymap Reference`, `Check for Updates...`, `About Oxide-Tech-IDE`.
 * **Left Tool Stripe**: `Project` file tree and `Cargo` workspace manager.
 * **Right Tool Stripe**: `AI Assistant`, `Structure`, `Slint Preview`, `Embedded Sim`, and `Iced Inspector`.
-* **Bottom Tool Stripe**: `Terminal`, `Problems` (diagnostics), `Macro Viewer` (live syn expansion), `Playwright E2E`, and `Git` VCS panels.
+* **Bottom Tool Stripe**: `Debugger` (Step-by-step MCU/LLDB), `MQTT Terminal`, `Terminal`, `Problems` (diagnostics), `Macro Viewer` (live syn expansion), `Playwright E2E`, and `Git` VCS panels.
 * **Status Bar**: Real-time Git branch selector (`main`), linter status indicator (`Clean`), indentation style, UTF-8 encoding, LF line endings, and live memory profiling gauge.
 
 ---
@@ -42,6 +55,16 @@
 * **QEMU System Emulator**: Cortex-M0/M3/M4/RISC-V machine emulator with GDB stub `:1234` and semihosting console integration.
 * **Hardware Probes & Target Chip Selector**: Auto-discovery of attached USB probes (voltage, speed, serial) and target chips (`STM32F4`, `STM32H7`, `nRF52840`, `RP2040`, `ESP32-C3`).
 * **Active Execution Line Highlight**: Monaco editor yellow glyph arrow and blue paused line indicator.
+
+---
+
+### 5. MQTT 5.0 Interactive Terminal & Telemetry Hub
+![RustRover MQTT Terminal](docs/assets/rustrover_mqtt_terminal.png)
+
+* **Interactive Protocol Client**: Real-time MQTT 5.0 pub/sub terminal with support for configurable brokers, client IDs, KeepAlive, and auto-reconnect.
+* **Multi-Topic Subscriptions**: Wildcard subscriptions (`sensors/#`, `device/+/telemetry`) with per-topic QoS 0, 1, 2 level selection.
+* **Live Message Stream & Filter**: Color-coded payload stream with autoscroll, timestamp logging, and fuzzy filter search across topic names and JSON bodies.
+* **Publisher & JSON Templates**: Built-in editor with QoS and Retain flags, plus quick telemetry templates (`Cortex Telemetry`, `Relay Command`, `Ping Request`).
 
 ---
 
