@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { FileState } from '../types/editor';
+import { tauriCommands } from '../services/tauri';
 
 export interface ReviewComment {
   id: string;
@@ -20,7 +21,8 @@ interface EditorStoreState {
   setCurrentFile: (path: string) => void;
   updateFileContent: (path: string, content: string) => void;
   markSaved: (path: string) => void;
-  openFile: (path: string, content: string) => void;
+  saveCurrentFile: () => Promise<void>;
+  openFile: (path: string, content?: string) => Promise<void>;
   closeTab: (path: string) => void;
   addReviewComment: (comment: ReviewComment) => void;
   clearReviewComments: (filePath: string) => void;
@@ -28,7 +30,7 @@ interface EditorStoreState {
   dismissReviewComment: (commentId: string) => void;
 }
 
-export const useEditorStore = create<EditorStoreState>((set) => ({
+export const useEditorStore = create<EditorStoreState>((set, get) => ({
   currentFile: null,
   files: new Map(),
   openTabs: [],
@@ -56,21 +58,47 @@ export const useEditorStore = create<EditorStoreState>((set) => ({
     if (file) files.set(path, { ...file, unsaved: false });
     return { files };
   }),
-  
-  openFile: (path, content) => set((state) => {
-    const files = new Map(state.files);
-    if (!files.has(path)) {
-      files.set(path, { content, unsaved: false, cursor: { line: 1, column: 1 } });
+
+  saveCurrentFile: async () => {
+    const { currentFile, files } = get();
+    if (!currentFile) return;
+    const file = files.get(currentFile);
+    if (file) {
+      try {
+        await tauriCommands.writeFile(currentFile, file.content);
+        get().markSaved(currentFile);
+      } catch (err) {
+        console.error('Failed to save file:', err);
+      }
     }
+  },
+  
+  openFile: async (path, content) => {
+    const state = get();
+    const files = new Map(state.files);
+
+    if (!files.has(path)) {
+      let fileContent = content;
+      if (fileContent === undefined) {
+        try {
+          fileContent = await tauriCommands.readFile(path);
+        } catch {
+          fileContent = '';
+        }
+      }
+      files.set(path, { content: fileContent, unsaved: false, cursor: { line: 1, column: 1 } });
+    }
+
     const openTabs = state.openTabs.includes(path) ? state.openTabs : [...state.openTabs, path];
     const recent = state.recentFiles.filter(f => f !== path);
-    return {
+    
+    set({
       files,
       openTabs,
       currentFile: path,
       recentFiles: [path, ...recent]
-    };
-  }),
+    });
+  },
   
   closeTab: (path) => set((state) => {
     const openTabs = state.openTabs.filter(t => t !== path);

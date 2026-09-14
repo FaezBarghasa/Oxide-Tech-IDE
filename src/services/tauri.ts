@@ -1,5 +1,11 @@
 import { invoke } from '@tauri-apps/api/core';
 import { FileTreeNode } from '../types/api';
+import {
+  CargoWorkspaceMetadata,
+  GitFileStatusDetail,
+  LineDiffDetail,
+  MacroExpansionResult,
+} from '../types/rustrover';
 
 export const tauriCommands = {
   readFile: (path: string): Promise<string> => invoke('read_file', { path }),
@@ -24,6 +30,21 @@ export const tauriCommands = {
   gitAddAsync: (files: string[], workspacePath: string): Promise<string> => invoke('git_add_async', { files, workspacePath }),
   gitCommitAsync: (message: string, workspacePath: string): Promise<string> => invoke('git_commit_async', { message, workspacePath }),
   gitCreatePRAsync: (title: string, body: string, branch: string, workspacePath: string): Promise<string> => invoke('git_create_pr_async', { title, body, branch, workspacePath }),
+
+  // RustRover Cargo operations
+  cargoGetWorkspaceMetadata: (workspacePath: string): Promise<CargoWorkspaceMetadata> => invoke('cargo_get_workspace_metadata', { workspacePath }),
+  rustExpandMacro: (sourceCode: string, macroName?: string, workspacePath: string = '.'): Promise<MacroExpansionResult> => invoke('rust_expand_macro', { sourceCode, macroName, workspacePath }),
+  cargoAddDependency: (crateName: string, version?: string, workspacePath: string = '.'): Promise<string> => invoke('cargo_add_dependency', { crateName, version, workspacePath }),
+
+  // RustRover VCS line diffs & statuses
+  vcsGetDetailedStatus: (workspacePath: string): Promise<GitFileStatusDetail[]> => invoke('vcs_get_detailed_status', { workspacePath }),
+  vcsGetLineDiffs: (filePath: string, workspacePath: string = '.'): Promise<LineDiffDetail[]> => invoke('vcs_get_line_diffs', { filePath, workspacePath }),
+
+  // RustRover Layout & Keymaps persistence
+  saveIdeLayout: (layoutJson: string): Promise<void> => invoke('save_ide_layout', { layoutJson }),
+  loadIdeLayout: (): Promise<string> => invoke('load_ide_layout'),
+  saveUserKeymap: (keymapJson: string): Promise<void> => invoke('save_user_keymap', { keymapJson }),
+  loadUserKeymap: (): Promise<string> => invoke('load_user_keymap'),
 
   // Telemetry hardware daemons
   connectSerialPortDaemon: (port: string, baudRate: number): Promise<string> => invoke('connect_serial_port_daemon', { port, baudRate }),

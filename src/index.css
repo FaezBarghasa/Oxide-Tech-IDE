@@ -8,10 +8,11 @@ body {
   margin: 0;
   padding: 0;
   background-color: #1e1f22;
+  color: #dfe1e5;
   overflow: hidden;
 }
 
-/* Scrollbar customization */
+/* Scrollbar customization matching JetBrains New UI */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -28,4 +29,101 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #4e5254;
+}
+
+/* Monaco Gutter Glyph Classes */
+.my-breakpoint-glyph {
+  background: #e06c75;
+  border-radius: 50%;
+  width: 10px !important;
+  height: 10px !important;
+  margin-left: 5px;
+  margin-top: 6px;
+  cursor: pointer;
+}
+
+.my-run-glyph {
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid #57a64a;
+  margin-left: 6px;
+  margin-top: 6px;
+  cursor: pointer;
+}
+
+.my-run-glyph:hover {
+  border-left-color: #6ec85c;
+}
+
+/* Monaco VCS Gutter Line Annotations */
+.my-vcs-added {
+  border-left: 3px solid #629755 !important;
+}
+
+.my-vcs-modified {
+  border-left: 3px solid #6897bb !important;
+}
+
+.my-vcs-deleted {
+  border-left: 3px solid #e06c75 !important;
+}
+
+/* FlexLayout JetBrains Theme Overrides */
+.flexlayout__layout {
+  background-color: #1e1f22 !important;
+}
+
+.flexlayout__tabset {
+  background-color: #2b2d30 !important;
+  border-color: #393b40 !important;
+}
+
+.flexlayout__tabset-selected {
+  background-color: #1e1f22 !important;
+}
+
+.flexlayout__tab_button {
+  background-color: #2b2d30 !important;
+  color: #868a91 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 11px !important;
+  border: none !important;
+}
+
+.flexlayout__tab_button--selected {
+  background-color: #1e1f22 !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  border-top: 2px solid #3574f0 !important;
+}
+
+.flexlayout__tab_button:hover {
+  background-color: #35373c !important;
+  color: #ffffff !important;
+}
+
+.flexlayout__splitter {
+  background-color: #2b2d30 !important;
+}
+
+.flexlayout__splitter:hover {
+  background-color: #3574f0 !important;
+}
+
+.flexlayout__border {
+  background-color: #1e1f22 !important;
+  border-color: #2b2d30 !important;
+}
+
+.flexlayout__border_button {
+  background-color: #1e1f22 !important;
+  color: #868a91 !important;
+  font-size: 11px !important;
+}
+
+.flexlayout__border_button--selected {
+  background-color: #2b2d30 !important;
+  color: #ffffff !important;
 }

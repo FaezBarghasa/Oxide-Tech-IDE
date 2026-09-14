@@ -28,6 +28,7 @@ export * from './layout/HarpoonBuffers';
 export * from './layout/Omnibar';
 export * from './layout/TransientOverlay';
 export * from './layout/SettingsModal';
+export * from './search/SearchEverywhereOverlay';
 export * from './studio/ModelCatalog';
 export * from './studio/CanvasCodeGraph';
 export * from './orchestration/TimelineScrubber';

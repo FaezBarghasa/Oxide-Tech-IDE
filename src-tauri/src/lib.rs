@@ -1,4 +1,5 @@
 pub mod handlers {
+    pub mod cargo_ops;
     pub mod core_ops;
     pub mod file_ops;
     pub mod git_async;
@@ -6,7 +7,9 @@ pub mod handlers {
     pub mod http_proxy;
     pub mod process;
     pub mod rag;
+    pub mod settings_storage;
     pub mod system;
+    pub mod vcs_ops;
 }
 pub mod utils;
 
@@ -66,6 +69,15 @@ pub fn run() {
             handlers::hardware_daemon::clear_hardware_buffers_daemon,
             handlers::hardware_daemon::disconnect_hardware_daemons,
             handlers::http_proxy::proxy_request,
+            handlers::cargo_ops::cargo_get_workspace_metadata,
+            handlers::cargo_ops::rust_expand_macro,
+            handlers::cargo_ops::cargo_add_dependency,
+            handlers::vcs_ops::vcs_get_detailed_status,
+            handlers::vcs_ops::vcs_get_line_diffs,
+            handlers::settings_storage::save_ide_layout,
+            handlers::settings_storage::load_ide_layout,
+            handlers::settings_storage::save_user_keymap,
+            handlers::settings_storage::load_user_keymap,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

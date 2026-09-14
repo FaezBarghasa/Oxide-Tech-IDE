@@ -1,88 +1,35 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as monaco from 'monaco-editor';
 import { useEditorStore } from '../../state/editorStore';
 import { useSettingsStore } from '../../state/settingsStore';
 import { useCompilationStore } from '../../state/compilationStore';
+import { useFileSystemStore } from '../../state/fileSystemStore';
 import { setupMonacoRust } from '../../services/monaco';
+import { tauriCommands } from '../../services/tauri';
 import { EditorTabs } from './EditorTabs';
 import { AIFloatingPrompt } from '../ai/AIFloatingPrompt';
-import { Activity } from 'lucide-react';
-
-function escapeHtml(str: string) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
+import { Activity, Play, Bug, Sparkles } from 'lucide-react';
 
 export function CodeEditor() {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const zoneIdsRef = useRef<string[]>([]);
-  
-  const { currentFile, files, updateFileContent, reviewComments } = useEditorStore();
+  const decorationsCollectionRef = useRef<monaco.editor.IEditorDecorationsCollection | null>(null);
+  const breakpointsRef = useRef<Set<number>>(new Set());
+
+  const { currentFile, files, updateFileContent } = useEditorStore();
   const fileData = currentFile ? files.get(currentFile) : null;
-  
-  const { theme, fontSize, showMinimap, zenMode, activeOverlay, setActiveOverlay } = useSettingsStore();
+  const { workspaceRoot } = useFileSystemStore();
+
+  const { fontSize, showMinimap, zenMode, activeOverlay, setActiveOverlay } = useSettingsStore();
   const diagnostics = useCompilationStore((state) => state.diagnostics);
+
+  const [contextActionMenu, setContextActionMenu] = useState<{ x: number; y: number; line: number } | null>(null);
 
   useEffect(() => {
     setupMonacoRust();
   }, []);
 
-  // Register Monaco Inline Completions Provider (Ghost Text predictions)
-  useEffect(() => {
-    const provider = monaco.languages.registerInlineCompletionsProvider('*', {
-      provideInlineCompletions: async (model, position) => {
-        const lineContent = model.getLineContent(position.lineNumber);
-        const precedingText = lineContent.substring(0, position.column - 1).trim();
-        const isRust = model.getLanguageId() === 'rust';
-
-        let insertText = '';
-        if (isRust) {
-          if (precedingText === 'fn main()') {
-            insertText = ' {\n    println!("Hello from Oxide Tech!");\n}';
-          } else if (precedingText.startsWith('let mut')) {
-            insertText = ' buffer = Vec::new();';
-          } else if (precedingText === 'match result') {
-            insertText = ' {\n        Ok(val) => {\n            log::info!("Success: {:?}", val);\n        }\n        Err(err) => {\n            log::error!("Failure: {:?}", err);\n        }\n    }';
-          } else if (precedingText.endsWith('struct Device')) {
-            insertText = ' {\n    id: String,\n    port: String,\n    baud: u32,\n}';
-          }
-        } else {
-          if (precedingText === 'const handleOpen = () =>') {
-            insertText = ' {\n  setIsVisible(true);\n};';
-          } else if (precedingText === 'interface Props') {
-            insertText = ' {\n  label: string;\n  value: number;\n}';
-          }
-        }
-
-        if (!insertText) return undefined;
-
-        return {
-          items: [
-            {
-              insertText,
-              range: new monaco.Range(
-                position.lineNumber,
-                position.column,
-                position.lineNumber,
-                position.column
-              )
-            }
-          ]
-        };
-      },
-      freeInlineCompletions: () => {}
-    });
-
-    return () => {
-      provider.dispose();
-    };
-  }, []);
-
+  // Initialize Monaco Editor
   useEffect(() => {
     if (!containerRef.current || !currentFile) return;
 
@@ -90,7 +37,7 @@ export function CodeEditor() {
       editorRef.current = monaco.editor.create(containerRef.current, {
         value: fileData?.content || '',
         language: getLanguage(currentFile),
-        theme: theme === 'dark' ? 'oxide-dark' : 'vs',
+        theme: 'rustrover-dark',
         fontSize,
         minimap: { enabled: showMinimap },
         fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
@@ -98,37 +45,68 @@ export function CodeEditor() {
         wordWrap: 'on',
         lineHeight: 22,
         renderLineHighlight: 'all',
-        padding: { top: 12 }
+        glyphMargin: true,
+        inlayHints: {
+          enabled: 'on',
+          fontSize: 10,
+          fontFamily: "'JetBrains Mono', monospace",
+        },
+        overviewRulerBorder: true,
+        overviewRulerLanes: 3,
+        padding: { top: 8 },
       });
 
+      // Handle Content Changes
       editorRef.current.onDidChangeModelContent(() => {
         const val = editorRef.current?.getValue();
         updateFileContent(currentFile, val || '');
+        updateGutterDecorations();
       });
 
-      // Bind Cmd+L to spawn AI Prompt
+      // Handle Glyph Margin Click (Toggle Breakpoint)
+      editorRef.current.onMouseDown((e) => {
+        if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
+          const line = e.target.position?.lineNumber;
+          if (line) {
+            if (breakpointsRef.current.has(line)) {
+              breakpointsRef.current.delete(line);
+            } else {
+              breakpointsRef.current.add(line);
+            }
+            updateGutterDecorations();
+          }
+        }
+      });
+
+      // Bind Alt+Enter to Context Actions Popup
+      editorRef.current.addAction({
+        id: 'show-context-actions',
+        label: 'Show Context Actions (Alt+Enter)',
+        keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.Enter],
+        run: (ed) => {
+          const pos = ed.getPosition();
+          if (pos) {
+            const coords = ed.getScrolledVisiblePosition(pos);
+            if (coords) {
+              setContextActionMenu({
+                x: coords.left + 40,
+                y: coords.top + 50,
+                line: pos.lineNumber,
+              });
+            }
+          }
+        },
+      });
+
+      // Bind Cmd+L / Ctrl+L to AI Prompt
       editorRef.current.addAction({
         id: 'open-ai-prompt',
         label: 'Open AI Prompt Overlay',
         keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyL],
         run: () => {
           setActiveOverlay('prompt');
-        }
+        },
       });
-
-      // Bind Cmd+Enter to Accept review fix
-      editorRef.current.addAction({
-        id: 'accept-review-fix',
-        label: 'Accept Inline Review Fix',
-        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
-        run: () => {
-          const comments = useEditorStore.getState().reviewComments.filter(c => c.filePath === currentFile);
-          if (comments.length > 0) {
-            useEditorStore.getState().acceptReviewComment(comments[0].id);
-          }
-        }
-      });
-
     } else {
       const model = editorRef.current.getModel();
       if (model && model.getValue() !== fileData?.content) {
@@ -136,107 +114,78 @@ export function CodeEditor() {
       }
       monaco.editor.setModelLanguage(model!, getLanguage(currentFile));
     }
+
+    updateGutterDecorations();
   }, [currentFile]);
 
-  // Handle Dynamic Review Comments View Zones
-  useEffect(() => {
+  // Update VCS, Breakpoints, and Run Glyphs in Left Gutter
+  const updateGutterDecorations = async () => {
     if (!editorRef.current || !currentFile) return;
-    const editor = editorRef.current;
 
-    // Clear previous zones
-    editor.changeViewZones((accessor) => {
-      for (const zoneId of zoneIdsRef.current) {
-        accessor.removeZone(zoneId);
-      }
-      zoneIdsRef.current = [];
-    });
+    const decorations: monaco.editor.IModelDeltaDecoration[] = [];
+    const model = editorRef.current.getModel();
+    if (!model) return;
 
-    const fileComments = reviewComments.filter(c => c.filePath === currentFile);
-    if (fileComments.length === 0) return;
-
-    editor.changeViewZones((accessor) => {
-      for (const comment of fileComments) {
-        const container = document.createElement('div');
-        container.className = 'bg-ide-panel/95 border border-ide-border rounded p-2.5 mx-8 my-1 flex flex-col space-y-2 select-none shadow-lg';
-        
-        const header = document.createElement('div');
-        header.className = 'flex items-center justify-between text-[10px] text-ide-text/40';
-        header.innerHTML = `<span class="font-bold text-ide-keyword uppercase tracking-wider">AI Inline Code Review</span><span>Line ${comment.line}</span>`;
-        container.appendChild(header);
-
-        const message = document.createElement('div');
-        message.className = 'text-xs text-white leading-normal font-sans';
-        message.innerText = comment.message;
-        container.appendChild(message);
-
-        const diffContainer = document.createElement('div');
-        diffContainer.className = 'bg-ide-bg rounded border border-ide-border/40 p-2 font-mono text-[10px] leading-relaxed flex flex-col space-y-1';
-        
-        const oldLine = document.createElement('div');
-        oldLine.className = 'text-red-400 bg-red-500/10 px-1 rounded flex items-center';
-        oldLine.innerHTML = `<span class="opacity-30 mr-2 font-bold">-</span><span class="line-through">${escapeHtml(comment.originalText.trim())}</span>`;
-        
-        const newLine = document.createElement('div');
-        newLine.className = 'text-green-400 bg-green-500/10 px-1 rounded flex items-center';
-        newLine.innerHTML = `<span class="opacity-30 mr-2 font-bold">+</span><span>${escapeHtml(comment.replacementText.trim())}</span>`;
-        
-        diffContainer.appendChild(oldLine);
-        diffContainer.appendChild(newLine);
-        container.appendChild(diffContainer);
-
-        const actions = document.createElement('div');
-        actions.className = 'flex items-center space-x-2';
-
-        const acceptBtn = document.createElement('button');
-        acceptBtn.className = 'bg-ide-selection hover:bg-ide-activeTab text-white text-[10px] px-2.5 py-1 rounded font-bold cursor-pointer transition-colors';
-        acceptBtn.innerText = 'Accept Fix (Cmd+Enter)';
-        acceptBtn.onclick = () => {
-          useEditorStore.getState().acceptReviewComment(comment.id);
-        };
-
-        const dismissBtn = document.createElement('button');
-        dismissBtn.className = 'bg-ide-bg border border-ide-border hover:bg-ide-hover text-ide-text text-[10px] px-2.5 py-1 rounded cursor-pointer transition-colors';
-        dismissBtn.innerText = 'Dismiss';
-        dismissBtn.onclick = () => {
-          useEditorStore.getState().dismissReviewComment(comment.id);
-        };
-
-        actions.appendChild(acceptBtn);
-        actions.appendChild(dismissBtn);
-        container.appendChild(actions);
-
-        const zoneId = accessor.addZone({
-          afterLineNumber: comment.line,
-          heightInLines: 7,
-          domNode: container
-        });
-        zoneIdsRef.current.push(zoneId);
-      }
-    });
-
-    return () => {
-      if (editorRef.current) {
-        editorRef.current.changeViewZones((accessor) => {
-          for (const zoneId of zoneIdsRef.current) {
-            accessor.removeZone(zoneId);
-          }
-          zoneIdsRef.current = [];
-        });
-      }
-    };
-  }, [reviewComments, currentFile]);
-
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.updateOptions({
-        fontSize,
-        minimap: { enabled: showMinimap }
+    // 1. Breakpoint Glyphs
+    breakpointsRef.current.forEach((line) => {
+      decorations.push({
+        range: new monaco.Range(line, 1, line, 1),
+        options: {
+          isWholeLine: false,
+          glyphMarginClassName: 'my-breakpoint-glyph',
+          glyphMarginHoverMessage: { value: `Breakpoint at line ${line}` },
+        },
       });
-      monaco.editor.setTheme(theme === 'dark' ? 'oxide-dark' : 'vs');
-    }
-  }, [fontSize, showMinimap, theme]);
+    });
 
-  // Set diagnostics markers
+    // 2. Run / Test Glyphs on `fn main()` and `#[test]`
+    const lineCount = model.getLineCount();
+    for (let l = 1; l <= lineCount; l++) {
+      const lineText = model.getLineContent(l);
+      if (lineText.includes('fn main()') || lineText.includes('#[test]') || lineText.includes('#[tokio::main]')) {
+        decorations.push({
+          range: new monaco.Range(l, 1, l, 1),
+          options: {
+            isWholeLine: false,
+            glyphMarginClassName: 'my-run-glyph',
+            glyphMarginHoverMessage: { value: "Run / Debug target (Shift+F10 / Shift+F9)" },
+          },
+        });
+      }
+    }
+
+    // 3. VCS Line Diffs from Git
+    try {
+      const diffs = await tauriCommands.vcsGetLineDiffs(currentFile, workspaceRoot);
+      for (const d of diffs) {
+        let marginClass = 'my-vcs-modified';
+        if (d.kind === 'added') marginClass = 'my-vcs-added';
+        if (d.kind === 'deleted') marginClass = 'my-vcs-deleted';
+
+        decorations.push({
+          range: new monaco.Range(d.line_number, 1, d.line_number, 1),
+          options: {
+            isWholeLine: true,
+            linesDecorationsClassName: marginClass,
+            overviewRuler: {
+              color: d.kind === 'added' ? '#629755' : '#6897bb',
+              position: monaco.editor.OverviewRulerLane.Left,
+            },
+          },
+        });
+      }
+    } catch {
+      // Ignore if not in git repo
+    }
+
+    if (!decorationsCollectionRef.current) {
+      decorationsCollectionRef.current = editorRef.current.createDecorationsCollection(decorations);
+    } else {
+      decorationsCollectionRef.current.set(decorations);
+    }
+  };
+
+  // Sync Diagnostics Markers
   useEffect(() => {
     if (!editorRef.current || !currentFile) return;
     const model = editorRef.current.getModel();
@@ -250,10 +199,10 @@ export function CodeEditor() {
         endLineNumber: d.line,
         endColumn: d.column + 5,
         message: d.message,
-        severity: d.level === 'error' ? monaco.MarkerSeverity.Error : monaco.MarkerSeverity.Warning
+        severity: d.level === 'error' ? monaco.MarkerSeverity.Error : monaco.MarkerSeverity.Warning,
       }));
 
-    monaco.editor.setModelMarkers(model, 'owner', markers);
+    monaco.editor.setModelMarkers(model, 'compiler', markers);
   }, [diagnostics, currentFile]);
 
   const getLanguage = (filename: string) => {
@@ -265,16 +214,74 @@ export function CodeEditor() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-ide-bg overflow-hidden relative">
+    <div className="flex flex-col h-full bg-[#1e1f22] overflow-hidden relative font-sans">
       {!zenMode && <EditorTabs />}
       {!currentFile ? (
-        <div className="flex-grow flex flex-col items-center justify-center text-ide-text select-none">
-          <Activity className="w-12 h-12 mb-4 text-ide-hover animate-pulse" />
-          <p className="text-xs uppercase tracking-widest font-bold">Select a file from the explorer</p>
+        <div className="flex-grow flex flex-col items-center justify-center text-[#868a91] select-none">
+          <Activity className="w-10 h-10 mb-3 text-[#3574f0] animate-pulse" />
+          <p className="text-xs uppercase tracking-widest font-semibold text-[#dfe1e5]">No Open File</p>
+          <p className="text-[11px] text-[#868a91] mt-1">Select a file from the Project tree or press Shift+Shift</p>
         </div>
       ) : (
         <div className="flex-grow min-h-0 w-full relative">
           <div ref={containerRef} className="h-full w-full" />
+
+          {/* Alt+Enter Context Actions Popup */}
+          {contextActionMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setContextActionMenu(null)}
+              />
+              <div
+                style={{ top: `${contextActionMenu.y}px`, left: `${contextActionMenu.x}px` }}
+                className="absolute z-50 bg-[#2b2d30] border border-[#393b40] rounded-md shadow-2xl p-1 w-64 text-xs font-sans animate-in fade-in zoom-in-95 duration-75"
+              >
+                <div className="px-2 py-1 text-[10px] font-bold text-[#868a91] uppercase tracking-wider flex items-center justify-between border-b border-[#393b40] mb-1">
+                  <span>Context Actions (Alt+Enter)</span>
+                  <Sparkles className="w-3 h-3 text-[#3574f0]" />
+                </div>
+
+                <button
+                  onClick={() => {
+                    setContextActionMenu(null);
+                    setActiveOverlay('prompt');
+                  }}
+                  className="w-full text-left px-2 py-1.5 hover:bg-[#3574f0] text-white rounded flex items-center space-x-2 text-[11px] cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#3574f0] group-hover:text-white" />
+                  <span>Oxide: Fix with AI</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setContextActionMenu(null);
+                    useCompilationStore.getState().setBuildStatus('running');
+                    tauriCommands.spawnCargoCheck('.').then((res) => {
+                      const parsed = JSON.parse(res);
+                      useCompilationStore.getState().setDiagnostics(parsed.diagnostics || []);
+                      useCompilationStore.getState().setBuildStatus('success');
+                    });
+                  }}
+                  className="w-full text-left px-2 py-1.5 hover:bg-[#3574f0] text-[#dfe1e5] hover:text-white rounded flex items-center space-x-2 text-[11px] cursor-pointer"
+                >
+                  <Play className="w-3.5 h-3.5 text-[#57a64a]" />
+                  <span>Run Cargo Check on File</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setContextActionMenu(null);
+                  }}
+                  className="w-full text-left px-2 py-1.5 hover:bg-[#3574f0] text-[#dfe1e5] hover:text-white rounded flex items-center space-x-2 text-[11px] cursor-pointer"
+                >
+                  <Bug className="w-3.5 h-3.5 text-[#61afef]" />
+                  <span>Add #[derive(Debug, Clone)]</span>
+                </button>
+              </div>
+            </>
+          )}
+
           {activeOverlay === 'prompt' && (
             <AIFloatingPrompt
               editor={editorRef.current}
