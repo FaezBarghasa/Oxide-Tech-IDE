@@ -1,6 +1,6 @@
+use crate::errors::OxideResult;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use crate::errors::OxideResult;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CortexBackend {
@@ -87,7 +87,10 @@ impl CortexHal {
                 if let Some(line) = stdout.lines().next() {
                     let parts: Vec<&str> = line.split(',').map(|s| s.trim()).collect();
                     let name = parts.first().unwrap_or(&"NVIDIA GPU").to_string();
-                    let vram = parts.get(1).and_then(|v| v.parse::<u64>().ok()).unwrap_or(24576);
+                    let vram = parts
+                        .get(1)
+                        .and_then(|v| v.parse::<u64>().ok())
+                        .unwrap_or(24576);
 
                     return DeviceCapabilities {
                         backend: CortexBackend::Cuda,
@@ -131,7 +134,9 @@ impl CortexHal {
 }
 
 fn num_cpus() -> usize {
-    std::thread::available_parallelism().map(|p| p.get()).unwrap_or(8)
+    std::thread::available_parallelism()
+        .map(|p| p.get())
+        .unwrap_or(8)
 }
 
 /// Simulated Qwen3-Embedding-0.6B Inference & 1024-Dim Embedding Engine with L2 Normalization
@@ -158,7 +163,10 @@ impl Qwen3EmbeddingEngine {
     pub fn embed_text(&self, text: &str) -> Vec<f32> {
         let mut vector = vec![0.0f32; self.dimension];
         let lower = text.to_lowercase();
-        let words: Vec<&str> = lower.split(|c: char| !c.is_alphanumeric()).filter(|s| !s.is_empty()).collect();
+        let words: Vec<&str> = lower
+            .split(|c: char| !c.is_alphanumeric())
+            .filter(|s| !s.is_empty())
+            .collect();
 
         if words.is_empty() {
             return vector;
@@ -172,7 +180,11 @@ impl Qwen3EmbeddingEngine {
 
             for k in 0..16 {
                 let dim = (word_hash.wrapping_mul(31 + k * 17) ^ (k * 7919)) % self.dimension;
-                let sign = if (word_hash >> (k % 8)) & 1 == 1 { 1.0f32 } else { -1.0f32 };
+                let sign = if (word_hash >> (k % 8)) & 1 == 1 {
+                    1.0f32
+                } else {
+                    -1.0f32
+                };
                 let pos_weight = 1.0 / (1.0 + (w_idx as f32 * 0.02));
                 vector[dim] += sign * pos_weight;
             }
@@ -230,7 +242,12 @@ impl SurrealMTreeIndex {
         &self.config
     }
 
-    pub fn insert_chunk(&mut self, file_path: &str, symbol_name: Option<String>, content: &str) -> String {
+    pub fn insert_chunk(
+        &mut self,
+        file_path: &str,
+        symbol_name: Option<String>,
+        content: &str,
+    ) -> String {
         let id = uuid::Uuid::new_v4().to_string();
         let vector = self.engine.embed_text(content);
         let token_count = content.split_whitespace().count();
@@ -270,7 +287,11 @@ impl SurrealMTreeIndex {
             .collect();
 
         // Sort descending by similarity
-        scored.sort_by(|a, b| b.similarity_score.partial_cmp(&a.similarity_score).unwrap_or(std::cmp::Ordering::Equal));
+        scored.sort_by(|a, b| {
+            b.similarity_score
+                .partial_cmp(&a.similarity_score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         scored.truncate(top_k);
 
         Ok(scored)
@@ -328,7 +349,9 @@ mod tests {
             "Reads RS485 UART frame packets at 115200 baud rate.",
         );
 
-        let results = index.search_knn("database connection pool max connections", 2).unwrap();
+        let results = index
+            .search_knn("database connection pool max connections", 2)
+            .unwrap();
         assert_eq!(results.len(), 2);
         assert_eq!(results[0].file_path, "src/db/pool.rs");
         assert!(results[0].similarity_score > 0.2);

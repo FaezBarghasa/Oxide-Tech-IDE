@@ -1,7 +1,7 @@
+use crate::errors::{OxideError, OxideResult};
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use serde::{Deserialize, Serialize};
-use crate::errors::{OxideError, OxideResult};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolManifest {
@@ -62,7 +62,11 @@ pub struct ForgeEngine {
 
 impl ForgeEngine {
     pub fn new(workspace_root: impl AsRef<Path>) -> Self {
-        let base_dir = workspace_root.as_ref().join(".oxide").join("forge").join("tools");
+        let base_dir = workspace_root
+            .as_ref()
+            .join(".oxide")
+            .join("forge")
+            .join("tools");
         Self {
             base_dir,
             max_oscillation_attempts: 3,
@@ -112,7 +116,10 @@ impl ForgeEngine {
 
     /// JIT synthesize a new tool following the Lazar protocol and Test-Driven synthesis.
     /// Uses the Oscillation Guard to limit retry attempts to 3.
-    pub fn synthesize_tool(&self, req: &ForgeSynthesisRequest) -> OxideResult<ForgeSynthesisResult> {
+    pub fn synthesize_tool(
+        &self,
+        req: &ForgeSynthesisRequest,
+    ) -> OxideResult<ForgeSynthesisResult> {
         let tool_dir = self.base_dir.join(&req.tool_name);
         std::fs::create_dir_all(tool_dir.join("src"))?;
         std::fs::create_dir_all(tool_dir.join("tests"))?;
@@ -137,7 +144,10 @@ impl ForgeEngine {
         std::fs::write(tool_dir.join("src").join("lib.rs"), &req.lib_rs)?;
 
         // 4. Write tests/integration.rs
-        std::fs::write(tool_dir.join("tests").join("integration.rs"), &req.integration_test_rs)?;
+        std::fs::write(
+            tool_dir.join("tests").join("integration.rs"),
+            &req.integration_test_rs,
+        )?;
 
         let attempts = 1;
         let mut compiler_diagnostics = Vec::new();
@@ -145,8 +155,11 @@ impl ForgeEngine {
         let mut logs = Vec::new();
 
         // 5. Verification Cycle (cargo check / cargo test)
-        logs.push(format!("Starting compilation verification for tool '{}' (Attempt {}/{})", req.tool_name, attempts, self.max_oscillation_attempts));
-        
+        logs.push(format!(
+            "Starting compilation verification for tool '{}' (Attempt {}/{})",
+            req.tool_name, attempts, self.max_oscillation_attempts
+        ));
+
         let test_output = Command::new("cargo")
             .arg("test")
             .current_dir(&tool_dir)
@@ -160,7 +173,10 @@ impl ForgeEngine {
                 if !out.status.success() {
                     compiler_diagnostics.push(stderr.clone());
                     test_diagnostics.push(stdout);
-                    logs.push(format!("Test verification failed on attempt {}: {}", attempts, stderr));
+                    logs.push(format!(
+                        "Test verification failed on attempt {}: {}",
+                        attempts, stderr
+                    ));
 
                     return Ok(ForgeSynthesisResult {
                         tool_name: req.tool_name.clone(),
@@ -184,7 +200,10 @@ impl ForgeEngine {
         // 6. Build Wasm or mock target artifact
         let wasm_path = tool_dir.join(format!("{}.wasm", req.tool_name));
         std::fs::write(&wasm_path, b"\x00asm\x01\x00\x00\x00")?;
-        logs.push(format!("Wasm artifact generated at {}", wasm_path.display()));
+        logs.push(format!(
+            "Wasm artifact generated at {}",
+            wasm_path.display()
+        ));
 
         // 7. Auto-generate initial tool.md
         let doc_content = format!(
@@ -228,10 +247,16 @@ impl ForgeEngine {
         // Skill Crystallization: ensure tool.md is rich and crystallized
         if manifest.usage_count >= 3 {
             let tool_md = tool_dir.join("tool.md");
-            let crystallized_header = format!("<!-- Crystallized Skill - Usage Count: {} -->\n", manifest.usage_count);
+            let crystallized_header = format!(
+                "<!-- Crystallized Skill - Usage Count: {} -->\n",
+                manifest.usage_count
+            );
             if let Ok(existing_doc) = std::fs::read_to_string(&tool_md) {
                 if !existing_doc.starts_with("<!-- Crystallized Skill") {
-                    let _ = std::fs::write(&tool_md, format!("{}{}", crystallized_header, existing_doc));
+                    let _ = std::fs::write(
+                        &tool_md,
+                        format!("{}{}", crystallized_header, existing_doc),
+                    );
                 }
             }
         }
@@ -344,7 +369,9 @@ fn test_hex() {
         assert_eq!(count3, 3);
 
         // Verify tool.md crystallization tag
-        let doc = std::fs::read_to_string(tmp.path().join(".oxide/forge/tools/hex_decoder/tool.md")).unwrap();
+        let doc =
+            std::fs::read_to_string(tmp.path().join(".oxide/forge/tools/hex_decoder/tool.md"))
+                .unwrap();
         assert!(doc.contains("Crystallized Skill"));
 
         // Deprecate

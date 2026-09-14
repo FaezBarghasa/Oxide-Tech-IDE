@@ -1,8 +1,8 @@
-use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
-use tracing_appender::rolling;
-use tokio::sync::broadcast;
-use serde::{Serialize, Deserialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use tokio::sync::broadcast;
+use tracing_appender::rolling;
+use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LogEvent {
@@ -33,9 +33,7 @@ impl TelemetryPipeline {
             .with_thread_names(true);
 
         // Layer 2: Console logging (for development)
-        let console_layer = fmt::layer()
-            .with_target(true)
-            .with_thread_ids(false);
+        let console_layer = fmt::layer().with_target(true).with_thread_ids(false);
 
         // Initialize subscriber
         tracing_subscriber::registry()

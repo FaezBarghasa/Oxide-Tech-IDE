@@ -18,7 +18,9 @@ pub struct LineDiffDetail {
 }
 
 #[tauri::command]
-pub async fn vcs_get_detailed_status(workspace_path: String) -> Result<Vec<GitFileStatusDetail>, String> {
+pub async fn vcs_get_detailed_status(
+    workspace_path: String,
+) -> Result<Vec<GitFileStatusDetail>, String> {
     let output = Command::new("git")
         .arg("status")
         .arg("--porcelain=v1")
@@ -64,7 +66,10 @@ pub async fn vcs_get_detailed_status(workspace_path: String) -> Result<Vec<GitFi
 }
 
 #[tauri::command]
-pub async fn vcs_get_line_diffs(file_path: String, workspace_path: String) -> Result<Vec<LineDiffDetail>, String> {
+pub async fn vcs_get_line_diffs(
+    file_path: String,
+    workspace_path: String,
+) -> Result<Vec<LineDiffDetail>, String> {
     let output = Command::new("git")
         .arg("diff")
         .arg("-U0")

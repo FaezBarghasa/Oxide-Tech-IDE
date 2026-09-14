@@ -1,5 +1,5 @@
-use thiserror::Error;
 use std::path::PathBuf;
+use thiserror::Error;
 use uuid::Uuid;
 
 #[derive(Error, Debug)]

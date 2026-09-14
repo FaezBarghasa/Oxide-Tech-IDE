@@ -19,7 +19,10 @@ pub struct CudaDiscoveryResult {
 pub fn discover_cuda() -> CudaDiscoveryResult {
     // Attempt discovery using nvidia-smi query
     let output = Command::new("nvidia-smi")
-        .args(["--query-gpu=index,name,memory.total", "--format=csv,noheader,nounits"])
+        .args([
+            "--query-gpu=index,name,memory.total",
+            "--format=csv,noheader,nounits",
+        ])
         .output();
 
     match output {

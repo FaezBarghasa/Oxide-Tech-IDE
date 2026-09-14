@@ -1,6 +1,6 @@
-use std::path::{Path, PathBuf};
-use serde::{Deserialize, Serialize};
 use crate::errors::{OxideError, OxideResult};
+use serde::{Deserialize, Serialize};
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OxReadResult {
@@ -72,7 +72,12 @@ impl ClaudeArsenal {
     }
 
     /// `ox_read`: Reads file contents with AST symbol metadata injection
-    pub fn ox_read(&self, file_path: &str, offset: Option<usize>, limit: Option<usize>) -> OxideResult<OxReadResult> {
+    pub fn ox_read(
+        &self,
+        file_path: &str,
+        offset: Option<usize>,
+        limit: Option<usize>,
+    ) -> OxideResult<OxReadResult> {
         let full_path = self.resolve_path(file_path);
         let content = std::fs::read_to_string(&full_path)?;
         let lines: Vec<&str> = content.lines().collect();
@@ -91,7 +96,11 @@ impl ClaudeArsenal {
         if file_path.ends_with(".rs") {
             for line in &lines {
                 let trimmed = line.trim();
-                if trimmed.starts_with("pub fn ") || trimmed.starts_with("fn ") || trimmed.starts_with("pub struct ") || trimmed.starts_with("pub enum ") {
+                if trimmed.starts_with("pub fn ")
+                    || trimmed.starts_with("fn ")
+                    || trimmed.starts_with("pub struct ")
+                    || trimmed.starts_with("pub enum ")
+                {
                     symbols.push(trimmed.to_string());
                 }
             }
@@ -122,7 +131,12 @@ impl ClaudeArsenal {
     }
 
     /// `ox_edit`: Precise string replacement with instant diff calculation
-    pub fn ox_edit(&self, file_path: &str, old_str: &str, new_str: &str) -> OxideResult<OxEditResult> {
+    pub fn ox_edit(
+        &self,
+        file_path: &str,
+        old_str: &str,
+        new_str: &str,
+    ) -> OxideResult<OxEditResult> {
         let target = self.resolve_path(file_path);
         let content = std::fs::read_to_string(&target)?;
 
@@ -147,7 +161,11 @@ impl ClaudeArsenal {
     }
 
     /// `ox_grep`: Hybrid text & symbol search
-    pub fn ox_grep(&self, pattern: &str, file_ext_filter: Option<&str>) -> OxideResult<OxGrepResult> {
+    pub fn ox_grep(
+        &self,
+        pattern: &str,
+        file_ext_filter: Option<&str>,
+    ) -> OxideResult<OxGrepResult> {
         let mut matches = Vec::new();
         let root = if let Some(ref ghost) = self.ghost_overlay_dir {
             ghost
@@ -194,7 +212,11 @@ impl ClaudeArsenal {
                 if let Ok(content) = std::fs::read_to_string(&p) {
                     for (line_idx, line) in content.lines().enumerate() {
                         if line.contains(pattern) {
-                            let rel_path = p.strip_prefix(base_root).unwrap_or(&p).to_string_lossy().to_string();
+                            let rel_path = p
+                                .strip_prefix(base_root)
+                                .unwrap_or(&p)
+                                .to_string_lossy()
+                                .to_string();
                             matches.push(OxGrepMatch {
                                 file_path: rel_path,
                                 line_number: line_idx + 1,
@@ -228,7 +250,8 @@ impl ClaudeArsenal {
         let stdout = String::from_utf8_lossy(&output.stdout).to_string();
         let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-        let compiler_error_count = stderr.matches("error[").count() + stderr.matches("error:").count();
+        let compiler_error_count =
+            stderr.matches("error[").count() + stderr.matches("error:").count();
 
         Ok(OxBashResult {
             command: command.to_string(),
@@ -252,13 +275,23 @@ mod tests {
         let arsenal = ClaudeArsenal::new(tmp.path());
 
         // Test ox_write and ox_read
-        arsenal.ox_write("src/lib.rs", "pub fn calculate_sum(a: i32, b: i32) -> i32 {\n    a + b\n}\n").unwrap();
+        arsenal
+            .ox_write(
+                "src/lib.rs",
+                "pub fn calculate_sum(a: i32, b: i32) -> i32 {\n    a + b\n}\n",
+            )
+            .unwrap();
         let read_res = arsenal.ox_read("src/lib.rs", None, None).unwrap();
         assert_eq!(read_res.line_count, 3);
-        assert!(read_res.ast_symbols.iter().any(|s| s.contains("pub fn calculate_sum")));
+        assert!(read_res
+            .ast_symbols
+            .iter()
+            .any(|s| s.contains("pub fn calculate_sum")));
 
         // Test ox_edit
-        let edit_res = arsenal.ox_edit("src/lib.rs", "a + b", "a.saturating_add(b)").unwrap();
+        let edit_res = arsenal
+            .ox_edit("src/lib.rs", "a + b", "a.saturating_add(b)")
+            .unwrap();
         assert_eq!(edit_res.occurrences_replaced, 1);
         assert!(edit_res.diff_preview.contains("- a + b"));
 

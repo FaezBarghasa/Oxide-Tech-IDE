@@ -32,7 +32,9 @@ pub struct MacroExpansionResult {
 }
 
 #[tauri::command]
-pub async fn cargo_get_workspace_metadata(workspace_path: String) -> Result<CargoWorkspaceMetadata, String> {
+pub async fn cargo_get_workspace_metadata(
+    workspace_path: String,
+) -> Result<CargoWorkspaceMetadata, String> {
     let path = Path::new(&workspace_path);
     let output = Command::new("cargo")
         .arg("metadata")
@@ -69,14 +71,18 @@ pub async fn cargo_get_workspace_metadata(workspace_path: String) -> Result<Carg
         for pkg in pkgs {
             let id = pkg["id"].as_str().unwrap_or_default();
             // Filter to workspace packages or include all if member list is empty
-            let is_member = workspace_members.is_empty() || workspace_members.iter().any(|m| m.contains(id));
+            let is_member =
+                workspace_members.is_empty() || workspace_members.iter().any(|m| m.contains(id));
             if !is_member {
                 continue;
             }
 
             let name = pkg["name"].as_str().unwrap_or_default().to_string();
             let version = pkg["version"].as_str().unwrap_or_default().to_string();
-            let manifest_path = pkg["manifest_path"].as_str().unwrap_or_default().to_string();
+            let manifest_path = pkg["manifest_path"]
+                .as_str()
+                .unwrap_or_default()
+                .to_string();
 
             let mut targets = Vec::new();
             if let Some(target_arr) = pkg["targets"].as_array() {
@@ -139,9 +145,7 @@ pub async fn rust_expand_macro(
                 let formatted = quote::quote!(#file).to_string();
                 (formatted, true)
             }
-            Err(_) => {
-                (source_code.clone(), false)
-            }
+            Err(_) => (source_code.clone(), false),
         }
     };
 

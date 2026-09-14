@@ -1,6 +1,6 @@
-use std::process::Command;
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use std::path::PathBuf;
+use std::process::Command;
 
 pub struct WorktreeManager {
     pub base_repo_dir: PathBuf,
@@ -16,7 +16,14 @@ impl WorktreeManager {
 
         let output = Command::new("git")
             .current_dir(&self.base_repo_dir)
-            .args(["worktree", "add", "-b", branch_name, target_path.to_str().unwrap_or_default(), "HEAD"])
+            .args([
+                "worktree",
+                "add",
+                "-b",
+                branch_name,
+                target_path.to_str().unwrap_or_default(),
+                "HEAD",
+            ])
             .output()?;
 
         if !output.status.success() {

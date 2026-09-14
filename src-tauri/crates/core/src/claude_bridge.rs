@@ -1,8 +1,8 @@
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-use serde::{Deserialize, Serialize};
 use crate::errors::OxideResult;
 use crate::local_memory::{LocalMemoryEngine, MemoryKind, MemoryScope};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClaudeConvention {
@@ -73,11 +73,17 @@ impl ClaudeBridge {
             if trimmed.starts_with('-') || trimmed.starts_with('*') {
                 let clean = trimmed.trim_start_matches(['-', '*', ' ']).trim();
                 if !clean.is_empty() {
-                    let (cat, pattern) = if clean.to_lowercase().contains("error") || clean.to_lowercase().contains("thiserror") {
+                    let (cat, pattern) = if clean.to_lowercase().contains("error")
+                        || clean.to_lowercase().contains("thiserror")
+                    {
                         ("error_handling".to_string(), Some("*.rs".to_string()))
-                    } else if clean.to_lowercase().contains("test") || clean.to_lowercase().contains("nextest") {
+                    } else if clean.to_lowercase().contains("test")
+                        || clean.to_lowercase().contains("nextest")
+                    {
                         ("testing".to_string(), Some("tests/*".to_string()))
-                    } else if clean.to_lowercase().contains("clippy") || clean.to_lowercase().contains("lint") {
+                    } else if clean.to_lowercase().contains("clippy")
+                        || clean.to_lowercase().contains("lint")
+                    {
                         ("linting".to_string(), None)
                     } else {
                         ("general".to_string(), None)
@@ -95,7 +101,11 @@ impl ClaudeBridge {
     }
 
     /// Ingests parsed CLAUDE.md rules directly into the Local Memory Engine
-    pub fn ingest_into_memory(&self, memory: &mut LocalMemoryEngine, worker_id: &str) -> OxideResult<usize> {
+    pub fn ingest_into_memory(
+        &self,
+        memory: &mut LocalMemoryEngine,
+        worker_id: &str,
+    ) -> OxideResult<usize> {
         let conventions = self.parse_claude_md_files()?;
         let count = conventions.len();
         for conv in conventions {
@@ -137,9 +147,16 @@ impl ClaudeBridge {
         for entry in entries.flatten() {
             let path = entry.path();
             if path.extension().and_then(|s| s.to_str()) == Some("md") {
-                let name = path.file_stem().and_then(|s| s.to_str()).unwrap_or_default().to_string();
+                let name = path
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or_default()
+                    .to_string();
                 let content = std::fs::read_to_string(&path)?;
-                let first_line = content.lines().next().unwrap_or("Custom Claude slash command");
+                let first_line = content
+                    .lines()
+                    .next()
+                    .unwrap_or("Custom Claude slash command");
 
                 commands.push(ClaudeSlashCommand {
                     name,
@@ -177,7 +194,9 @@ mod tests {
         assert_eq!(conventions[1].category, "testing");
 
         let mut memory = LocalMemoryEngine::new();
-        let ingested = bridge.ingest_into_memory(&mut memory, "test_worker").unwrap();
+        let ingested = bridge
+            .ingest_into_memory(&mut memory, "test_worker")
+            .unwrap();
         assert_eq!(ingested, 3);
 
         let queried = memory.query_relevant("thiserror", None);
@@ -205,7 +224,11 @@ mod tests {
 
         let cmd_dir = tmp.path().join(".claude").join("commands");
         std::fs::create_dir_all(&cmd_dir).unwrap();
-        std::fs::write(cmd_dir.join("review-security.md"), "# Security Review Checklist\nAudit all unsafe blocks.").unwrap();
+        std::fs::write(
+            cmd_dir.join("review-security.md"),
+            "# Security Review Checklist\nAudit all unsafe blocks.",
+        )
+        .unwrap();
 
         let bridge = ClaudeBridge::new(tmp.path());
         let mcps = bridge.parse_mcp_config().unwrap();

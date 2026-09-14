@@ -59,8 +59,8 @@ pub struct EmbeddedSimMetrics {
 pub struct IcedWidgetNode {
     pub id: String,
     pub widget_type: String, // "Column" | "Row" | "Button" | "Text" | "Container" | "TextInput"
-    pub bounds: [f32; 4], // [x, y, width, height]
-    pub padding: [f32; 4], // [top, right, bottom, left]
+    pub bounds: [f32; 4],    // [x, y, width, height]
+    pub padding: [f32; 4],   // [top, right, bottom, left]
     pub spacing: f32,
     pub state_summary: String,
     pub children: Vec<IcedWidgetNode>,
@@ -71,31 +71,45 @@ pub struct IcedWidgetNode {
 // -------------------------------------------------------------
 
 #[tauri::command]
-pub async fn playwright_discover_tests(workspace_root: String) -> Result<Vec<PlaywrightTestItem>, String> {
+pub async fn playwright_discover_tests(
+    workspace_root: String,
+) -> Result<Vec<PlaywrightTestItem>, String> {
     tokio::task::spawn_blocking(move || {
         let mut tests = Vec::new();
         let root = Path::new(&workspace_root);
-        
+
         // Scan for test/spec files or provide comprehensive defaults for the workstation
         let default_files = vec![
-            ("e2e/auth.spec.ts", vec![
-                ("should allow user to log in", 14),
-                ("should reject invalid credentials", 28),
-                ("should handle session timeout", 45),
-            ]),
-            ("e2e/rust_compiler.spec.ts", vec![
-                ("should compile hello_world without errors", 10),
-                ("should report syntax diagnostic on missing semicolon", 22),
-                ("should run cargo clippy and highlight warnings", 36),
-            ]),
-            ("e2e/slint_preview.spec.ts", vec![
-                ("should render main window button", 12),
-                ("should trigger callback on click event", 25),
-            ]),
-            ("e2e/embedded_sim.spec.ts", vec![
-                ("should initialize SSD1306 framebuffer", 8),
-                ("should draw text string on 128x64 display", 19),
-            ]),
+            (
+                "e2e/auth.spec.ts",
+                vec![
+                    ("should allow user to log in", 14),
+                    ("should reject invalid credentials", 28),
+                    ("should handle session timeout", 45),
+                ],
+            ),
+            (
+                "e2e/rust_compiler.spec.ts",
+                vec![
+                    ("should compile hello_world without errors", 10),
+                    ("should report syntax diagnostic on missing semicolon", 22),
+                    ("should run cargo clippy and highlight warnings", 36),
+                ],
+            ),
+            (
+                "e2e/slint_preview.spec.ts",
+                vec![
+                    ("should render main window button", 12),
+                    ("should trigger callback on click event", 25),
+                ],
+            ),
+            (
+                "e2e/embedded_sim.spec.ts",
+                vec![
+                    ("should initialize SSD1306 framebuffer", 8),
+                    ("should draw text string on 128x64 display", 19),
+                ],
+            ),
         ];
 
         for (file, test_cases) in default_files {
@@ -121,19 +135,26 @@ pub async fn playwright_discover_tests(workspace_root: String) -> Result<Vec<Pla
 }
 
 #[tauri::command]
-pub async fn playwright_run_test(test_id: String, _file_path: String) -> Result<PlaywrightTestItem, String> {
+pub async fn playwright_run_test(
+    test_id: String,
+    _file_path: String,
+) -> Result<PlaywrightTestItem, String> {
     tokio::time::sleep(tokio::time::Duration::from_millis(450)).await;
-    
+
     // Simulate deterministic test execution with realistic timing
     let duration = 120 + (test_id.len() as u64 * 7) % 200;
     let is_failing = test_id.contains("timeout");
 
     Ok(PlaywrightTestItem {
         id: test_id.clone(),
-        name: test_id.split(':').last().unwrap_or("Test").to_string(),
+        name: test_id.split(':').next_back().unwrap_or("Test").to_string(),
         file_path: test_id.clone(),
         line_number: 14,
-        status: if is_failing { "failed".to_string() } else { "passed".to_string() },
+        status: if is_failing {
+            "failed".to_string()
+        } else {
+            "passed".to_string()
+        },
         duration_ms: Some(duration),
         error_message: if is_failing {
             Some("Error: Timeout 5000ms exceeded waiting for locator('#auth-token')".to_string())
@@ -170,28 +191,51 @@ pub async fn playwright_compare_visual_baselines(
 // -------------------------------------------------------------
 
 #[tauri::command]
-pub async fn slint_compile_preview(slint_code: String, _file_path: String) -> Result<Vec<SlintComponentDefinition>, String> {
+pub async fn slint_compile_preview(
+    slint_code: String,
+    _file_path: String,
+) -> Result<Vec<SlintComponentDefinition>, String> {
     tokio::task::spawn_blocking(move || {
         let mut components = Vec::new();
-        
+
         // Extract components from Slint code (e.g. `export component MainWindow inherits Window { ... }`)
         let lines: Vec<&str> = slint_code.lines().collect();
         let mut cur_component = "MainWindow".to_string();
         let mut props = vec![
-            SlintProperty { name: "width".to_string(), prop_type: "length".to_string(), value: "480px".to_string() },
-            SlintProperty { name: "height".to_string(), prop_type: "length".to_string(), value: "320px".to_string() },
-            SlintProperty { name: "background".to_string(), prop_type: "color".to_string(), value: "#1e1f22".to_string() },
-            SlintProperty { name: "counter".to_string(), prop_type: "int".to_string(), value: "0".to_string() },
+            SlintProperty {
+                name: "width".to_string(),
+                prop_type: "length".to_string(),
+                value: "480px".to_string(),
+            },
+            SlintProperty {
+                name: "height".to_string(),
+                prop_type: "length".to_string(),
+                value: "320px".to_string(),
+            },
+            SlintProperty {
+                name: "background".to_string(),
+                prop_type: "color".to_string(),
+                value: "#1e1f22".to_string(),
+            },
+            SlintProperty {
+                name: "counter".to_string(),
+                prop_type: "int".to_string(),
+                value: "0".to_string(),
+            },
         ];
         let mut callbacks = vec!["clicked()".to_string(), "reset()".to_string()];
 
         for line in lines {
             let trimmed = line.trim();
             if trimmed.starts_with("component ") || trimmed.starts_with("export component ") {
-                if let Some(name) = trimmed.split_whitespace().nth(if trimmed.starts_with("export") { 2 } else { 1 }) {
+                if let Some(name) = trimmed
+                    .split_whitespace()
+                    .nth(if trimmed.starts_with("export") { 2 } else { 1 })
+                {
                     cur_component = name.to_string();
                 }
-            } else if trimmed.starts_with("in-out property <") || trimmed.starts_with("property <") {
+            } else if trimmed.starts_with("in-out property <") || trimmed.starts_with("property <")
+            {
                 let parts: Vec<&str> = trimmed.split(':').collect();
                 if parts.len() >= 2 {
                     let prop_decl = parts[0].trim();
@@ -203,7 +247,9 @@ pub async fn slint_compile_preview(slint_code: String, _file_path: String) -> Re
                     });
                 }
             } else if trimmed.starts_with("callback ") {
-                let cb_name = trimmed.trim_start_matches("callback ").trim_end_matches(';');
+                let cb_name = trimmed
+                    .trim_start_matches("callback ")
+                    .trim_end_matches(';');
                 callbacks.push(cb_name.to_string());
             }
         }
@@ -307,7 +353,10 @@ pub async fn embedded_sim_inject_input(
     input_type: String,
     _payload: serde_json::Value,
 ) -> Result<String, String> {
-    Ok(format!("Injected {} into session {}", input_type, session_id))
+    Ok(format!(
+        "Injected {} into session {}",
+        input_type, session_id
+    ))
 }
 
 // -------------------------------------------------------------
@@ -324,74 +373,70 @@ pub async fn iced_fetch_widget_tree(_crate_path: String) -> Result<IcedWidgetNod
         padding: [16.0, 16.0, 16.0, 16.0],
         spacing: 12.0,
         state_summary: "theme: Dark, scale: 1.0".to_string(),
-        children: vec![
-            IcedWidgetNode {
-                id: "main-column".to_string(),
-                widget_type: "Column".to_string(),
-                bounds: [16.0, 16.0, 768.0, 568.0],
-                padding: [8.0, 8.0, 8.0, 8.0],
-                spacing: 16.0,
-                state_summary: "alignment: Center".to_string(),
-                children: vec![
-                    IcedWidgetNode {
-                        id: "header-text".to_string(),
+        children: vec![IcedWidgetNode {
+            id: "main-column".to_string(),
+            widget_type: "Column".to_string(),
+            bounds: [16.0, 16.0, 768.0, 568.0],
+            padding: [8.0, 8.0, 8.0, 8.0],
+            spacing: 16.0,
+            state_summary: "alignment: Center".to_string(),
+            children: vec![
+                IcedWidgetNode {
+                    id: "header-text".to_string(),
+                    widget_type: "Text".to_string(),
+                    bounds: [24.0, 24.0, 752.0, 32.0],
+                    padding: [0.0, 0.0, 0.0, 0.0],
+                    spacing: 0.0,
+                    state_summary: "content: 'Oxide Native Dashboard', size: 24".to_string(),
+                    children: vec![],
+                },
+                IcedWidgetNode {
+                    id: "controls-row".to_string(),
+                    widget_type: "Row".to_string(),
+                    bounds: [24.0, 72.0, 752.0, 48.0],
+                    padding: [4.0, 4.0, 4.0, 4.0],
+                    spacing: 10.0,
+                    state_summary: "alignment: Start".to_string(),
+                    children: vec![
+                        IcedWidgetNode {
+                            id: "btn-increment".to_string(),
+                            widget_type: "Button".to_string(),
+                            bounds: [28.0, 76.0, 120.0, 40.0],
+                            padding: [6.0, 12.0, 6.0, 12.0],
+                            spacing: 0.0,
+                            state_summary: "label: 'Increment (+)', is_hovered: false".to_string(),
+                            children: vec![],
+                        },
+                        IcedWidgetNode {
+                            id: "btn-reset".to_string(),
+                            widget_type: "Button".to_string(),
+                            bounds: [158.0, 76.0, 100.0, 40.0],
+                            padding: [6.0, 12.0, 6.0, 12.0],
+                            spacing: 0.0,
+                            state_summary: "label: 'Reset', is_hovered: false".to_string(),
+                            children: vec![],
+                        },
+                    ],
+                },
+                IcedWidgetNode {
+                    id: "status-container".to_string(),
+                    widget_type: "Container".to_string(),
+                    bounds: [24.0, 136.0, 752.0, 240.0],
+                    padding: [12.0, 12.0, 12.0, 12.0],
+                    spacing: 8.0,
+                    state_summary: "background: #2b2d30, border_radius: 6".to_string(),
+                    children: vec![IcedWidgetNode {
+                        id: "status-text".to_string(),
                         widget_type: "Text".to_string(),
-                        bounds: [24.0, 24.0, 752.0, 32.0],
+                        bounds: [36.0, 148.0, 728.0, 24.0],
                         padding: [0.0, 0.0, 0.0, 0.0],
                         spacing: 0.0,
-                        state_summary: "content: 'Oxide Native Dashboard', size: 24".to_string(),
+                        state_summary: "content: 'Status: Ready | Counter: 42'".to_string(),
                         children: vec![],
-                    },
-                    IcedWidgetNode {
-                        id: "controls-row".to_string(),
-                        widget_type: "Row".to_string(),
-                        bounds: [24.0, 72.0, 752.0, 48.0],
-                        padding: [4.0, 4.0, 4.0, 4.0],
-                        spacing: 10.0,
-                        state_summary: "alignment: Start".to_string(),
-                        children: vec![
-                            IcedWidgetNode {
-                                id: "btn-increment".to_string(),
-                                widget_type: "Button".to_string(),
-                                bounds: [28.0, 76.0, 120.0, 40.0],
-                                padding: [6.0, 12.0, 6.0, 12.0],
-                                spacing: 0.0,
-                                state_summary: "label: 'Increment (+)', is_hovered: false".to_string(),
-                                children: vec![],
-                            },
-                            IcedWidgetNode {
-                                id: "btn-reset".to_string(),
-                                widget_type: "Button".to_string(),
-                                bounds: [158.0, 76.0, 100.0, 40.0],
-                                padding: [6.0, 12.0, 6.0, 12.0],
-                                spacing: 0.0,
-                                state_summary: "label: 'Reset', is_hovered: false".to_string(),
-                                children: vec![],
-                            },
-                        ],
-                    },
-                    IcedWidgetNode {
-                        id: "status-container".to_string(),
-                        widget_type: "Container".to_string(),
-                        bounds: [24.0, 136.0, 752.0, 240.0],
-                        padding: [12.0, 12.0, 12.0, 12.0],
-                        spacing: 8.0,
-                        state_summary: "background: #2b2d30, border_radius: 6".to_string(),
-                        children: vec![
-                            IcedWidgetNode {
-                                id: "status-text".to_string(),
-                                widget_type: "Text".to_string(),
-                                bounds: [36.0, 148.0, 728.0, 24.0],
-                                padding: [0.0, 0.0, 0.0, 0.0],
-                                spacing: 0.0,
-                                state_summary: "content: 'Status: Ready | Counter: 42'".to_string(),
-                                children: vec![],
-                            },
-                        ],
-                    },
-                ],
-            },
-        ],
+                    }],
+                },
+            ],
+        }],
     })
 }
 

@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
 use crate::errors::{OxideError, OxideResult};
-use syn::Item;
 use quote::ToTokens;
+use serde::{Deserialize, Serialize};
+use syn::Item;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SymbolChunk {
@@ -29,7 +29,11 @@ impl TokenixEngine {
         let mut chunks = Vec::new();
         for (i, line) in source.lines().enumerate() {
             let trimmed = line.trim();
-            if trimmed.starts_with("fn ") || trimmed.starts_with("pub fn ") || trimmed.starts_with("pub async fn ") || trimmed.starts_with("async fn ") {
+            if trimmed.starts_with("fn ")
+                || trimmed.starts_with("pub fn ")
+                || trimmed.starts_with("pub async fn ")
+                || trimmed.starts_with("async fn ")
+            {
                 let name = trimmed.split('(').next().unwrap_or("fn").to_string();
                 chunks.push(SymbolChunk {
                     symbol_name: name,
@@ -39,7 +43,11 @@ impl TokenixEngine {
                     content: line.to_string(),
                 });
             } else if trimmed.starts_with("struct ") || trimmed.starts_with("pub struct ") {
-                let name = trimmed.split_whitespace().nth(1).unwrap_or("struct").to_string();
+                let name = trimmed
+                    .split_whitespace()
+                    .nth(1)
+                    .unwrap_or("struct")
+                    .to_string();
                 chunks.push(SymbolChunk {
                     symbol_name: name,
                     kind: "struct".to_string(),
@@ -48,7 +56,11 @@ impl TokenixEngine {
                     content: line.to_string(),
                 });
             } else if trimmed.starts_with("enum ") || trimmed.starts_with("pub enum ") {
-                let name = trimmed.split_whitespace().nth(1).unwrap_or("enum").to_string();
+                let name = trimmed
+                    .split_whitespace()
+                    .nth(1)
+                    .unwrap_or("enum")
+                    .to_string();
                 chunks.push(SymbolChunk {
                     symbol_name: name,
                     kind: "enum".to_string(),
@@ -64,10 +76,15 @@ impl TokenixEngine {
     /// AST-Aware Differential Semantic Slicing:
     /// Extracts the full body of target_symbol and compresses all other items to signatures/headers.
     pub fn slice_context(source: &str, target_symbol: &str) -> OxideResult<SlicedContext> {
-        let parsed_file = syn::parse_file(source).map_err(|e| OxideError::IoError(std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())))?;
-        
+        let parsed_file = syn::parse_file(source).map_err(|e| {
+            OxideError::IoError(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                e.to_string(),
+            ))
+        })?;
+
         let mut sliced_output = String::with_capacity(source.len() / 2);
-        
+
         for item in parsed_file.items {
             match item {
                 Item::Fn(mut item_fn) => {
@@ -120,4 +137,3 @@ impl TokenixEngine {
         })
     }
 }
-

@@ -33,7 +33,10 @@ impl PrivacyGuard {
         let patterns = [
             ("sk-proj-[A-Za-z0-9_-]{20,}", "[REDACTED_API_KEY]"),
             ("ghp_[A-Za-z0-9]{20,}", "[REDACTED_GITHUB_TOKEN]"),
-            ("eyJ[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*", "[REDACTED_JWT]"),
+            (
+                "eyJ[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*",
+                "[REDACTED_JWT]",
+            ),
         ];
 
         for (pattern, replacement) in patterns {

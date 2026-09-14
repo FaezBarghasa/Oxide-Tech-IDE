@@ -1,6 +1,6 @@
+use anyhow::Result;
 use portable_pty::{CommandBuilder, NativePtySystem, PtySize, PtySystem};
 use std::sync::{Arc, Mutex};
-use anyhow::Result;
 
 pub struct PtyTerminalSession {
     pub master: Box<dyn portable_pty::MasterPty + Send>,
@@ -54,7 +54,10 @@ impl PtyTerminalSession {
     }
 
     pub fn write_bytes(&self, bytes: &[u8]) -> Result<()> {
-        let mut writer = self.writer.lock().map_err(|_| anyhow::anyhow!("Lock poisoned"))?;
+        let mut writer = self
+            .writer
+            .lock()
+            .map_err(|_| anyhow::anyhow!("Lock poisoned"))?;
         writer.write_all(bytes)?;
         writer.flush()?;
         Ok(())
@@ -65,4 +68,3 @@ impl PtyTerminalSession {
         Ok(())
     }
 }
-

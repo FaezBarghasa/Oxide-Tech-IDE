@@ -1,8 +1,8 @@
+use crate::errors::{OxideError, OxideResult};
+use std::collections::HashMap;
+use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use std::collections::HashMap;
-use crate::errors::{OxideError, OxideResult};
-use std::path::Path;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub enum TaskState {
@@ -50,7 +50,11 @@ impl SwarmCritic {
         map.insert(workflow.id.clone(), workflow);
     }
 
-    pub async fn evaluate_swarm_outputs(&self, workflow_id: &str, _repo_path: &Path) -> OxideResult<MergeDecision> {
+    pub async fn evaluate_swarm_outputs(
+        &self,
+        workflow_id: &str,
+        _repo_path: &Path,
+    ) -> OxideResult<MergeDecision> {
         let map = self.workflows.read().await;
         if let Some(wf) = map.get(workflow_id) {
             if wf.nodes.iter().all(|n| n.state == TaskState::Verified) {
@@ -59,7 +63,9 @@ impl SwarmCritic {
                 Ok(MergeDecision::Rejected)
             }
         } else {
-            Err(OxideError::EpisodeNotFound { hash: workflow_id.to_string() })
+            Err(OxideError::EpisodeNotFound {
+                hash: workflow_id.to_string(),
+            })
         }
     }
 }
@@ -86,7 +92,10 @@ mod tests {
         critic.store_workflow(workflow).await;
 
         let dir = tempdir().unwrap();
-        let decision = critic.evaluate_swarm_outputs("test_wf", dir.path()).await.unwrap();
+        let decision = critic
+            .evaluate_swarm_outputs("test_wf", dir.path())
+            .await
+            .unwrap();
         assert_eq!(decision, MergeDecision::Approved);
     }
 
@@ -107,7 +116,10 @@ mod tests {
         critic.store_workflow(workflow).await;
 
         let dir = tempdir().unwrap();
-        let decision = critic.evaluate_swarm_outputs("test_wf_fail", dir.path()).await.unwrap();
+        let decision = critic
+            .evaluate_swarm_outputs("test_wf_fail", dir.path())
+            .await
+            .unwrap();
         assert_eq!(decision, MergeDecision::Rejected);
     }
 }

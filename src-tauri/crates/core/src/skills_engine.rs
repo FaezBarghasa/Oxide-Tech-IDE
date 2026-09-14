@@ -1,6 +1,6 @@
+use crate::errors::{OxideError, OxideResult};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::errors::{OxideError, OxideResult};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LocalSkill {
@@ -135,7 +135,9 @@ mod tests {
     #[test]
     fn test_skill_matching() {
         let engine = SkillsEngine::new();
-        let matches = engine.match_skills_for_diagnostic("error[E0433]: failed to resolve: unresolved import `std::fs`");
+        let matches = engine.match_skills_for_diagnostic(
+            "error[E0433]: failed to resolve: unresolved import `std::fs`",
+        );
         assert!(!matches.is_empty());
         assert_eq!(matches[0].id, "rust_fix_missing_import");
     }

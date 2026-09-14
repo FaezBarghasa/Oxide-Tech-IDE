@@ -1,10 +1,10 @@
-use petgraph::stable_graph::{StableGraph, NodeIndex};
+use crate::errors::{OxideError, OxideResult};
 use petgraph::algo::toposort;
+use petgraph::stable_graph::{NodeIndex, StableGraph};
 use petgraph::Direction;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
 use uuid::Uuid;
-use serde::{Serialize, Deserialize};
-use crate::errors::{OxideError, OxideResult};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TaskStatus {
@@ -88,12 +88,20 @@ impl SwarmDag {
     }
 
     pub fn add_dependency(&mut self, from_task_id: Uuid, to_task_id: Uuid) -> OxideResult<()> {
-        let from_index = self.node_map.get(&from_task_id)
-            .ok_or(OxideError::DependencyNotMet { task_id: from_task_id })?
+        let from_index = self
+            .node_map
+            .get(&from_task_id)
+            .ok_or(OxideError::DependencyNotMet {
+                task_id: from_task_id,
+            })?
             .0;
 
-        let to_index = self.node_map.get(&to_task_id)
-            .ok_or(OxideError::DependencyNotMet { task_id: to_task_id })?
+        let to_index = self
+            .node_map
+            .get(&to_task_id)
+            .ok_or(OxideError::DependencyNotMet {
+                task_id: to_task_id,
+            })?
             .0;
 
         self.graph.add_edge(from_index, to_index, ());
@@ -108,7 +116,11 @@ impl SwarmDag {
     pub fn validate_and_sort(&self) -> OxideResult<Vec<Uuid>> {
         let sorted = toposort(&self.graph, None).map_err(|cycle| {
             let cycle_node = cycle.node_id();
-            let cycle_task_id = self.index_to_id.get(&cycle_node).copied().unwrap_or_default();
+            let cycle_task_id = self
+                .index_to_id
+                .get(&cycle_node)
+                .copied()
+                .unwrap_or_default();
             OxideError::DagCycleError {
                 cycle_description: format!("Cycle detected involving task {}", cycle_task_id),
             }

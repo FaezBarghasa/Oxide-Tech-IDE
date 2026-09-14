@@ -21,16 +21,28 @@ pub mod telemetry;
 pub mod worktree_manager;
 
 pub use approvals::{MergeDecision, SwarmCritic, TaskState, Workflow};
-pub use claude_arsenal::{ClaudeArsenal, OxBashResult, OxEditResult, OxGrepMatch, OxGrepResult, OxReadResult};
-pub use claude_bridge::{ClaudeBridge, ClaudeConvention, ClaudeMcpConfig, ClaudeSlashCommand, McpServerConfig};
+pub use claude_arsenal::{
+    ClaudeArsenal, OxBashResult, OxEditResult, OxGrepMatch, OxGrepResult, OxReadResult,
+};
+pub use claude_bridge::{
+    ClaudeBridge, ClaudeConvention, ClaudeMcpConfig, ClaudeSlashCommand, McpServerConfig,
+};
 pub use context_compiler::{SlicedContext, SymbolChunk, TokenixEngine};
-pub use cortex_engine::{CortexBackend, CortexHal, CortexQueryResult, DeviceCapabilities, EmbeddingChunk, MTreeIndexConfig, Qwen3EmbeddingEngine, SurrealMTreeIndex};
+pub use cortex_engine::{
+    CortexBackend, CortexHal, CortexQueryResult, DeviceCapabilities, EmbeddingChunk,
+    MTreeIndexConfig, Qwen3EmbeddingEngine, SurrealMTreeIndex,
+};
 pub use cuda_discovery::{discover_cuda, CudaDeviceDetails, CudaDiscoveryResult};
 pub use dag::{AgentType, SwarmDag, TaskNode, TaskStatus, WaveScheduler};
 pub use errors::{OxideError, OxideResult};
-pub use forge_engine::{ForgeEngine, ForgeSynthesisRequest, ForgeSynthesisResult, ForgedToolSummary, ToolExecutionResult, ToolManifest};
+pub use forge_engine::{
+    ForgeEngine, ForgeSynthesisRequest, ForgeSynthesisResult, ForgedToolSummary,
+    ToolExecutionResult, ToolManifest,
+};
 pub use harness_engine::{HarnessEngine, HarnessEvidence, VerifierType};
-pub use local_memory::{DeveloperExpertiseProfile, LocalMemoryEngine, MemoryEntry, MemoryKind, MemoryScope};
+pub use local_memory::{
+    DeveloperExpertiseProfile, LocalMemoryEngine, MemoryEntry, MemoryKind, MemoryScope,
+};
 pub use loop_engine::{EorPhase, LoopEngine, ObservationResult, TaskContext};
 pub use plain_text_processor::ANSIStreamCleaner;
 pub use privacy_guard::{InferenceRequestMetadata, PrivacyGuard};
@@ -41,4 +53,3 @@ pub use security_broker::{AskpassBroker, SecretBroker};
 pub use skills_engine::{LocalSkill, SkillsEngine};
 pub use telemetry::{LogEvent, TelemetryPipeline};
 pub use worktree_manager::WorktreeManager;
-

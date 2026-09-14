@@ -1,7 +1,7 @@
+use crate::errors::{OxideError, OxideResult};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::errors::{OxideError, OxideResult};
 
 pub struct SecretBroker {
     secrets: Arc<RwLock<HashMap<String, String>>>,
@@ -50,7 +50,11 @@ impl AskpassBroker {
 
     pub async fn handle_prompt(&self, prompt: &str) -> OxideResult<String> {
         if prompt.to_lowercase().contains("password") || prompt.to_lowercase().contains("token") {
-            let secret = self.broker.get_secret("AUTH_TOKEN").await.unwrap_or_default();
+            let secret = self
+                .broker
+                .get_secret("AUTH_TOKEN")
+                .await
+                .unwrap_or_default();
             Ok(secret)
         } else {
             Err(OxideError::NetworkAccessDenied)

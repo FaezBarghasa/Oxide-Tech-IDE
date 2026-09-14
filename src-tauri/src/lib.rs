@@ -5,8 +5,10 @@ pub mod handlers {
     pub mod git_async;
     pub mod hardware_daemon;
     pub mod http_proxy;
+    pub mod lsp_daemon;
     pub mod mcu_debugger_ops;
     pub mod process;
+    pub mod pty_ops;
     pub mod rag;
     pub mod settings_storage;
     pub mod system;
@@ -96,6 +98,21 @@ pub fn run() {
             handlers::mcu_debugger_ops::mcu_poll_defmt_rtt,
             handlers::mcu_debugger_ops::mcu_launch_qemu,
             handlers::mcu_debugger_ops::mcu_read_peripheral_registers,
+            handlers::pty_ops::pty_spawn,
+            handlers::pty_ops::pty_write,
+            handlers::pty_ops::pty_resize,
+            handlers::pty_ops::pty_kill,
+            handlers::lsp_daemon::lsp_start,
+            handlers::lsp_daemon::lsp_did_open,
+            handlers::lsp_daemon::lsp_did_change,
+            handlers::lsp_daemon::lsp_did_save,
+            handlers::lsp_daemon::lsp_did_close,
+            handlers::lsp_daemon::lsp_completion,
+            handlers::lsp_daemon::lsp_hover,
+            handlers::lsp_daemon::lsp_definition,
+            handlers::lsp_daemon::lsp_inlay_hints,
+            handlers::lsp_daemon::lsp_code_actions,
+            handlers::lsp_daemon::lsp_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

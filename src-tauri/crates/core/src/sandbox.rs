@@ -1,13 +1,13 @@
-use nix::unistd::{fork, ForkResult, execvp, pipe};
-use nix::sys::wait::{waitpid, WaitStatus};
+use crate::errors::{OxideError, OxideResult};
 use nix::sys::signal::{kill, Signal};
+use nix::sys::wait::{waitpid, WaitStatus};
 use nix::unistd::Pid;
+use nix::unistd::{execvp, fork, pipe, ForkResult};
 use std::ffi::CString;
 use std::os::fd::AsRawFd;
 use std::path::PathBuf;
 use tokio::io::{AsyncReadExt, BufReader};
 use uuid::Uuid;
-use crate::errors::{OxideError, OxideResult};
 
 #[derive(Debug, Clone)]
 pub struct ExecutionResult {
@@ -23,29 +23,49 @@ impl SandboxExecutor {
         command: &[&str],
         env_vars: &[(String, String)],
     ) -> OxideResult<ExecutionResult> {
-        let (stdout_read, stdout_write) = pipe().map_err(|e| OxideError::IoError(std::io::Error::other(e.to_string())))?;
-        let (stderr_read, stderr_write) = pipe().map_err(|e| OxideError::IoError(std::io::Error::other(e.to_string())))?;
+        let (stdout_read, stdout_write) =
+            pipe().map_err(|e| OxideError::IoError(std::io::Error::other(e.to_string())))?;
+        let (stderr_read, stderr_write) =
+            pipe().map_err(|e| OxideError::IoError(std::io::Error::other(e.to_string())))?;
 
         match unsafe { fork() } {
             Ok(ForkResult::Parent { child }) => {
                 drop(std::fs::File::from(stdout_write));
                 drop(std::fs::File::from(stderr_write));
 
-                let mut stdout_reader = BufReader::new(tokio::fs::File::from_std(std::fs::File::from(stdout_read)));
-                let mut stderr_reader = BufReader::new(tokio::fs::File::from_std(std::fs::File::from(stderr_read)));
+                let mut stdout_reader =
+                    BufReader::new(tokio::fs::File::from_std(std::fs::File::from(stdout_read)));
+                let mut stderr_reader =
+                    BufReader::new(tokio::fs::File::from_std(std::fs::File::from(stderr_read)));
 
                 let mut stdout_buf = String::new();
                 let mut stderr_buf = String::new();
 
                 let stdout_handle = tokio::spawn(async move {
-                    stdout_reader.read_to_string(&mut stdout_buf).await.map(|_| stdout_buf)
+                    stdout_reader
+                        .read_to_string(&mut stdout_buf)
+                        .await
+                        .map(|_| stdout_buf)
                 });
                 let stderr_handle = tokio::spawn(async move {
-                    stderr_reader.read_to_string(&mut stderr_buf).await.map(|_| stderr_buf)
+                    stderr_reader
+                        .read_to_string(&mut stderr_buf)
+                        .await
+                        .map(|_| stderr_buf)
                 });
 
-                let stdout = stdout_handle.await.map_err(|e| OxideError::ExecutionError { code: -1, stderr: e.to_string() })??;
-                let stderr = stderr_handle.await.map_err(|e| OxideError::ExecutionError { code: -1, stderr: e.to_string() })??;
+                let stdout = stdout_handle
+                    .await
+                    .map_err(|e| OxideError::ExecutionError {
+                        code: -1,
+                        stderr: e.to_string(),
+                    })??;
+                let stderr = stderr_handle
+                    .await
+                    .map_err(|e| OxideError::ExecutionError {
+                        code: -1,
+                        stderr: e.to_string(),
+                    })??;
 
                 let status = waitpid(child, None).map_err(|e| OxideError::ExecutionError {
                     code: -1,
@@ -63,7 +83,7 @@ impl SandboxExecutor {
                     stdout,
                     stderr,
                 })
-            },
+            }
             Ok(ForkResult::Child) => {
                 unsafe {
                     libc::dup2(stdout_write.as_raw_fd(), 1);
@@ -75,10 +95,13 @@ impl SandboxExecutor {
                 drop(stderr_write);
 
                 for (key, value) in env_vars {
-                    unsafe { std::env::set_var(key, value); }
+                    unsafe {
+                        std::env::set_var(key, value);
+                    }
                 }
 
-                let args: Vec<CString> = command.iter().map(|s| CString::new(*s).unwrap()).collect();
+                let args: Vec<CString> =
+                    command.iter().map(|s| CString::new(*s).unwrap()).collect();
                 let _ = execvp(&args[0], &args);
 
                 std::process::exit(127);
@@ -86,7 +109,7 @@ impl SandboxExecutor {
             Err(e) => Err(OxideError::ExecutionError {
                 code: -1,
                 stderr: format!("Fork failed: {}", e),
-            })
+            }),
         }
     }
 }
@@ -128,7 +151,9 @@ impl SandboxCleanup {
         if !procs_file.exists() {
             return Ok(());
         }
-        let content = tokio::fs::read_to_string(&procs_file).await.map_err(OxideError::IoError)?;
+        let content = tokio::fs::read_to_string(&procs_file)
+            .await
+            .map_err(OxideError::IoError)?;
         for line in content.lines() {
             if let Ok(pid) = line.parse::<i32>() {
                 let _ = kill(Pid::from_raw(pid), Signal::SIGKILL);
@@ -140,21 +165,30 @@ impl SandboxCleanup {
 
     async fn remove_cgroup(&self) -> OxideResult<()> {
         if self.cgroup_path.exists() {
-            tokio::fs::remove_dir_all(&self.cgroup_path).await.map_err(OxideError::IoError)?;
+            tokio::fs::remove_dir_all(&self.cgroup_path)
+                .await
+                .map_err(OxideError::IoError)?;
         }
         Ok(())
     }
 
     async fn remove_overlay_dirs(&self) -> OxideResult<()> {
         if self.overlay_path.exists() {
-            tokio::fs::remove_dir_all(&self.overlay_path).await.map_err(OxideError::IoError)?;
+            tokio::fs::remove_dir_all(&self.overlay_path)
+                .await
+                .map_err(OxideError::IoError)?;
         }
         Ok(())
     }
 
     async fn remove_worktree(&self) -> OxideResult<()> {
         let output = tokio::process::Command::new("git")
-            .args(["worktree", "remove", "--force", &self.worktree_path.to_string_lossy()])
+            .args([
+                "worktree",
+                "remove",
+                "--force",
+                &self.worktree_path.to_string_lossy(),
+            ])
             .output()
             .await
             .map_err(OxideError::IoError)?;

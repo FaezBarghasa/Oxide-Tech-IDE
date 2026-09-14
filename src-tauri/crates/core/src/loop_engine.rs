@@ -1,7 +1,7 @@
-use std::path::PathBuf;
-use std::collections::HashMap;
-use serde::{Deserialize, Serialize};
 use crate::errors::{OxideError, OxideResult};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TaskContext {
@@ -67,14 +67,20 @@ impl LoopEngine {
             if *count >= self.oscillation_threshold {
                 self.is_oscillating = true;
                 self.phase = EorPhase::PausedForHitl;
-                tracing::warn!("Oscillation Guard triggered for error: '{}' (repeated {} times)", signature, count);
+                tracing::warn!(
+                    "Oscillation Guard triggered for error: '{}' (repeated {} times)",
+                    signature,
+                    count
+                );
                 return Ok(EorPhase::PausedForHitl);
             }
         }
 
         if self.current_iteration >= self.max_iterations {
             self.phase = EorPhase::Failed;
-            return Err(OxideError::LoopLimitExceeded { max_iterations: self.max_iterations });
+            return Err(OxideError::LoopLimitExceeded {
+                max_iterations: self.max_iterations,
+            });
         }
 
         self.phase = EorPhase::Reflect;
@@ -88,4 +94,3 @@ impl LoopEngine {
         self.phase = EorPhase::Execute;
     }
 }
-

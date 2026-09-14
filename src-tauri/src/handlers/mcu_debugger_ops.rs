@@ -170,7 +170,10 @@ pub async fn mcu_flash_firmware(
     tool: String, // "probe-rs" | "openocd"
 ) -> Result<McuFlashResult, String> {
     let mut logs = Vec::new();
-    logs.push(format!("⚡ Initializing [{}] with probe [{}]", tool, probe_id));
+    logs.push(format!(
+        "⚡ Initializing [{}] with probe [{}]",
+        tool, probe_id
+    ));
     logs.push(format!("🎯 Target chip: {}", chip));
     logs.push(format!("📦 Loading ELF binary: {}", elf_path));
     logs.push("🔍 Erasing sectors 0..4 (128 KB)... done [42ms]".to_string());
@@ -200,7 +203,8 @@ pub async fn mcu_poll_defmt_rtt(_session_id: String) -> Result<Vec<DefmtLogPacke
             timestamp_ms: now - 120,
             level: "info".to_string(),
             target: "embassy_stm32::rcc".to_string(),
-            message: "RCC configured: SYSCLK=168MHz, HCLK=168MHz, APB1=42MHz, APB2=84MHz".to_string(),
+            message: "RCC configured: SYSCLK=168MHz, HCLK=168MHz, APB1=42MHz, APB2=84MHz"
+                .to_string(),
             file: "src/main.rs".to_string(),
             line: 24,
         },
@@ -208,7 +212,8 @@ pub async fn mcu_poll_defmt_rtt(_session_id: String) -> Result<Vec<DefmtLogPacke
             timestamp_ms: now - 85,
             level: "debug".to_string(),
             target: "app::dma".to_string(),
-            message: "DMA2_Stream0 initialized for ADC1 multi-channel scan (circular mode)".to_string(),
+            message: "DMA2_Stream0 initialized for ADC1 multi-channel scan (circular mode)"
+                .to_string(),
             file: "src/drivers/dma.rs".to_string(),
             line: 52,
         },
@@ -216,7 +221,9 @@ pub async fn mcu_poll_defmt_rtt(_session_id: String) -> Result<Vec<DefmtLogPacke
             timestamp_ms: now - 40,
             level: "info".to_string(),
             target: "app::tasks::sensor".to_string(),
-            message: "BMP280 Sensor ID: 0x58 detected. Calibrated Pressure: 1013.25 hPa, Temp: 24.3 °C".to_string(),
+            message:
+                "BMP280 Sensor ID: 0x58 detected. Calibrated Pressure: 1013.25 hPa, Temp: 24.3 °C"
+                    .to_string(),
             file: "src/tasks/sensors.rs".to_string(),
             line: 78,
         },
@@ -235,8 +242,14 @@ pub async fn mcu_poll_defmt_rtt(_session_id: String) -> Result<Vec<DefmtLogPacke
 #[tauri::command]
 pub async fn mcu_launch_qemu(config: QemuSessionConfig) -> Result<Vec<String>, String> {
     Ok(vec![
-        format!("⚙️ Launching QEMU system emulator: qemu-system-arm -machine {} -cpu {}", config.machine, config.cpu),
-        format!("🌐 GDB remote stub listening on 127.0.0.1:{}", config.gdb_port),
+        format!(
+            "⚙️ Launching QEMU system emulator: qemu-system-arm -machine {} -cpu {}",
+            config.machine, config.cpu
+        ),
+        format!(
+            "🌐 GDB remote stub listening on 127.0.0.1:{}",
+            config.gdb_port
+        ),
         "🖥️ Semihosting initialized: stdout redirected to IDE console".to_string(),
         format!("📦 Loaded virtual image: {}", config.kernel_elf_path),
         "🟢 QEMU virtual CPU running at 100% clock cycles".to_string(),
@@ -245,7 +258,9 @@ pub async fn mcu_launch_qemu(config: QemuSessionConfig) -> Result<Vec<String>, S
 
 /// Fetch live Peripheral & SVD registers (e.g. STM32 RCC, GPIO, USART)
 #[tauri::command]
-pub async fn mcu_read_peripheral_registers(peripheral_name: String) -> Result<PeripheralBlock, String> {
+pub async fn mcu_read_peripheral_registers(
+    peripheral_name: String,
+) -> Result<PeripheralBlock, String> {
     if peripheral_name.to_uppercase().starts_with("GPIO") {
         Ok(PeripheralBlock {
             name: "GPIOA".to_string(),
@@ -345,15 +360,14 @@ pub async fn mcu_read_peripheral_registers(peripheral_name: String) -> Result<Pe
                     reset_value: 0x00000000,
                     current_value: 0x0000940A, // System clock switched to PLL
                     access: "read-write".to_string(),
-                    fields: vec![
-                        PeripheralRegisterField {
-                            name: "SWS".to_string(),
-                            bit_offset: 2,
-                            bit_width: 2,
-                            value: 0x02,
-                            description: "System clock switch status (00: HSI, 01: HSE, 10: PLL)".to_string(),
-                        },
-                    ],
+                    fields: vec![PeripheralRegisterField {
+                        name: "SWS".to_string(),
+                        bit_offset: 2,
+                        bit_width: 2,
+                        value: 0x02,
+                        description: "System clock switch status (00: HSI, 01: HSE, 10: PLL)"
+                            .to_string(),
+                    }],
                 },
             ],
         })

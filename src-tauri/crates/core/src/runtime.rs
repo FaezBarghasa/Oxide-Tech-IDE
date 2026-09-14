@@ -3,7 +3,9 @@ use tracing::info;
 
 /// Builds a hyper-performance tuned Tokio multi-threaded runtime.
 pub fn build_hyper_runtime() -> Runtime {
-    let cpus = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4);
+    let cpus = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4);
     let worker_threads = cpus * 2;
     let max_blocking_threads = 128;
 
