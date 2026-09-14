@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
-use crate::errors::OxideResult;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MemoryKind {
@@ -84,6 +83,7 @@ impl LocalMemoryEngine {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn add_entry(
         &mut self,
         workspace_id: String,
