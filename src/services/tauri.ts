@@ -76,4 +76,39 @@ export const tauriCommands = {
   mcuPollDefmtRtt: (sessionId: string): Promise<import('../types/mcuDebugger').DefmtLogPacket[]> => invoke('mcu_poll_defmt_rtt', { sessionId }),
   mcuLaunchQemu: (config: import('../types/mcuDebugger').QemuSessionConfig): Promise<string[]> => invoke('mcu_launch_qemu', { config }),
   mcuReadPeripheralRegisters: (peripheralName: string): Promise<import('../types/mcuDebugger').PeripheralBlock> => invoke('mcu_read_peripheral_registers', { peripheralName }),
+
+  // Full-Duplex Interactive PTY Terminal
+  ptySpawn: (sessionId: string, shell?: string, cwd?: string, cols?: number, rows?: number): Promise<string> =>
+    invoke('pty_spawn', { sessionId, shell, cwd, cols: cols || 80, rows: rows || 24 }),
+  ptyWrite: (sessionId: string, data: string): Promise<void> =>
+    invoke('pty_write', { sessionId, data }),
+  ptyResize: (sessionId: string, cols: number, rows: number): Promise<void> =>
+    invoke('pty_resize', { sessionId, cols, rows }),
+  ptyKill: (sessionId: string): Promise<void> =>
+    invoke('pty_kill', { sessionId }),
+
+  // Language Server Protocol (rust-analyzer)
+  lspStart: (workspacePath: string): Promise<boolean> =>
+    invoke('lsp_start', { workspacePath }),
+  lspDidOpen: (path: string, text: string, version: number): Promise<void> =>
+    invoke('lsp_did_open', { path, text, version }),
+  lspDidChange: (path: string, text: string, version: number): Promise<void> =>
+    invoke('lsp_did_change', { path, text, version }),
+  lspDidSave: (path: string): Promise<void> =>
+    invoke('lsp_did_save', { path }),
+  lspDidClose: (path: string): Promise<void> =>
+    invoke('lsp_did_close', { path }),
+  lspCompletion: (path: string, line: number, character: number): Promise<unknown> =>
+    invoke('lsp_completion', { path, line, character }),
+  lspHover: (path: string, line: number, character: number): Promise<unknown> =>
+    invoke('lsp_hover', { path, line, character }),
+  lspDefinition: (path: string, line: number, character: number): Promise<unknown> =>
+    invoke('lsp_definition', { path, line, character }),
+  lspInlayHints: (path: string, startLine: number, endLine: number): Promise<unknown> =>
+    invoke('lsp_inlay_hints', { path, startLine, endLine }),
+  lspCodeActions: (path: string, startLine: number, startCol: number, endLine: number, endCol: number): Promise<unknown> =>
+    invoke('lsp_code_actions', { path, startLine, startCol, endLine, endCol }),
+  lspStatus: (): Promise<boolean> =>
+    invoke('lsp_status'),
 };
+
