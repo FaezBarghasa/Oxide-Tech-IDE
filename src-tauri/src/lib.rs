@@ -5,6 +5,7 @@ pub mod handlers {
     pub mod git_async;
     pub mod hardware_daemon;
     pub mod http_proxy;
+    pub mod mcu_debugger_ops;
     pub mod process;
     pub mod rag;
     pub mod settings_storage;
@@ -89,6 +90,12 @@ pub fn run() {
             handlers::visual_workstation_ops::embedded_sim_inject_input,
             handlers::visual_workstation_ops::iced_fetch_widget_tree,
             handlers::visual_workstation_ops::iced_trigger_hot_reload,
+            handlers::mcu_debugger_ops::mcu_discover_probes,
+            handlers::mcu_debugger_ops::mcu_get_supported_chips,
+            handlers::mcu_debugger_ops::mcu_flash_firmware,
+            handlers::mcu_debugger_ops::mcu_poll_defmt_rtt,
+            handlers::mcu_debugger_ops::mcu_launch_qemu,
+            handlers::mcu_debugger_ops::mcu_read_peripheral_registers,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
