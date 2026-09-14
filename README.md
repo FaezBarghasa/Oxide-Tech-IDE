@@ -32,6 +32,18 @@
 
 ---
 
+### 4. JetBrains Step-by-Step LLDB / DAP Debugger (`Shift+F9`)
+![RustRover Debugger](docs/assets/rustrover_debugger.png)
+
+* **Debug Controls Strip**: Resume / Pause (`F9`), Stop (`Ctrl+F2`), Step Over (`F8`), Step Into (`F7`), Step Out (`Shift+F8`), and Rerun session (`Ctrl+F5`).
+* **Frames & Call Stack Panel**: Interactive stack frame browser detailing execution locations across threads and crates.
+* **Breakpoints Management**: Gutter-clickable line breakpoints with toggle enable/disable and memory address mapping.
+* **Variables Tree (Darcula Inspector)**: Recursive hierarchical tree inspection of local and global variables with nested struct and array expansion.
+* **Watch Expressions & LLDB Console**: Live expression evaluator (`+ Add Watch`) and raw LLDB stdout / interactive command feed.
+* **Active Execution Line Highlight**: Monaco editor yellow glyph arrow and blue paused line indicator.
+
+---
+
 ## 🌟 Visual Workstation Subsystems
 
 ### 🎭 1. Playwright Web & E2E Testing

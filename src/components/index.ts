@@ -33,6 +33,7 @@ export * from './tools/PlaywrightToolWindow';
 export * from './tools/SlintPreviewToolWindow';
 export * from './tools/EmbeddedSimToolWindow';
 export * from './tools/IcedInspectorToolWindow';
+export * from './tools/DebuggerToolWindow';
 export * from './studio/ModelCatalog';
 export * from './studio/CanvasCodeGraph';
 export * from './orchestration/TimelineScrubber';

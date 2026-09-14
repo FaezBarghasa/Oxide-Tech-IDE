@@ -10,6 +10,7 @@ import { PlaywrightToolWindow } from '../../tools/PlaywrightToolWindow';
 import { SlintPreviewToolWindow } from '../../tools/SlintPreviewToolWindow';
 import { EmbeddedSimToolWindow } from '../../tools/EmbeddedSimToolWindow';
 import { IcedInspectorToolWindow } from '../../tools/IcedInspectorToolWindow';
+import { DebuggerToolWindow } from '../../tools/DebuggerToolWindow';
 import { CodeEditor } from '../../editor/CodeEditor';
 import { TerminalPanel } from '../../terminal/TerminalPanel';
 import { GitPanel } from '../../git/GitPanel';
@@ -94,6 +95,13 @@ const defaultLayoutJson: IJsonModel = {
       location: 'bottom',
       selected: 0,
       children: [
+        {
+          type: 'tab',
+          id: 'debug',
+          name: 'Debug',
+          component: 'debug',
+          enableClose: false,
+        },
         {
           type: 'tab',
           id: 'terminal',
@@ -194,6 +202,8 @@ export function DockLayoutEngine() {
     const component = node.getComponent();
 
     switch (component) {
+      case 'debug':
+        return <DebuggerToolWindow />;
       case 'project':
         return <ProjectToolWindow />;
       case 'cargo':

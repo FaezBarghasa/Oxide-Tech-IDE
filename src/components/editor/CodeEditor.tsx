@@ -4,6 +4,7 @@ import { useEditorStore } from '../../state/editorStore';
 import { useSettingsStore } from '../../state/settingsStore';
 import { useCompilationStore } from '../../state/compilationStore';
 import { useFileSystemStore } from '../../state/fileSystemStore';
+import { useDebugStore } from '../../state/debugStore';
 import { setupMonacoRust } from '../../services/monaco';
 import { tauriCommands } from '../../services/tauri';
 import { EditorTabs } from './EditorTabs';
@@ -22,12 +23,23 @@ export function CodeEditor() {
 
   const { fontSize, showMinimap, zenMode, activeOverlay, setActiveOverlay } = useSettingsStore();
   const diagnostics = useCompilationStore((state) => state.diagnostics);
+  const { currentLine: debugLine, currentFile: debugFile, breakpoints: storeBreakpoints, toggleBreakpoint: toggleStoreBp } = useDebugStore();
 
   const [contextActionMenu, setContextActionMenu] = useState<{ x: number; y: number; line: number } | null>(null);
 
   useEffect(() => {
     setupMonacoRust();
   }, []);
+
+  // Sync store breakpoints with local breakpointsRef when file changes or store breakpoints change
+  useEffect(() => {
+    if (!currentFile) return;
+    const fileBps = storeBreakpoints
+      .filter((bp) => bp.file === currentFile && bp.enabled)
+      .map((bp) => bp.line);
+    breakpointsRef.current = new Set(fileBps);
+    updateGutterDecorations();
+  }, [currentFile, storeBreakpoints]);
 
   // Initialize Monaco Editor
   useEffect(() => {
@@ -67,13 +79,8 @@ export function CodeEditor() {
       editorRef.current.onMouseDown((e) => {
         if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
           const line = e.target.position?.lineNumber;
-          if (line) {
-            if (breakpointsRef.current.has(line)) {
-              breakpointsRef.current.delete(line);
-            } else {
-              breakpointsRef.current.add(line);
-            }
-            updateGutterDecorations();
+          if (line && currentFile) {
+            toggleStoreBp(currentFile, line);
           }
         }
       });
@@ -137,6 +144,19 @@ export function CodeEditor() {
         },
       });
     });
+
+    // 1.1 Active Debugger Paused Line
+    if (debugLine && debugFile === currentFile) {
+      decorations.push({
+        range: new monaco.Range(debugLine, 1, debugLine, 1),
+        options: {
+          isWholeLine: true,
+          className: 'bg-[#2e436e]/40 border-l-2 border-[#3574f0]',
+          glyphMarginClassName: 'my-debug-arrow-glyph',
+          glyphMarginHoverMessage: { value: `Paused at line ${debugLine}` },
+        },
+      });
+    }
 
     // 2. Run / Test Glyphs on `fn main()` and `#[test]`
     const lineCount = model.getLineCount();

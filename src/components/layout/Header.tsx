@@ -3,6 +3,7 @@ import { Play, Bug, Square, Settings, Search, Sparkles, ChevronDown, Box, Check,
 import { useSettingsStore } from '../../state/settingsStore';
 import { useCompilationStore } from '../../state/compilationStore';
 import { useFileSystemStore } from '../../state/fileSystemStore';
+import { useDebugStore } from '../../state/debugStore';
 import { tauriCommands } from '../../services/tauri';
 import { MainMenuDropdown } from './menu/MainMenuDropdown';
 
@@ -24,6 +25,7 @@ export function RRHeader() {
   const { setActiveOverlay } = useSettingsStore();
   const { workspaceRoot } = useFileSystemStore();
   const { lastBuildStatus, setBuildStatus, setDiagnostics } = useCompilationStore();
+  const { startDebugging } = useDebugStore();
 
   const [selectedConfig, setSelectedConfig] = useState<ConfigKey>('run');
   const [isConfigDropdownOpen, setIsConfigDropdownOpen] = useState(false);
@@ -140,6 +142,7 @@ export function RRHeader() {
 
           {/* Debug Button (Shift+F9) */}
           <button
+            onClick={() => startDebugging(CONFIGS[selectedConfig].label)}
             title={`Debug '${CONFIGS[selectedConfig].label}' (Shift+F9)`}
             className="px-2.5 h-full hover:bg-[#35373c] text-[#3574f0] hover:text-[#528bff] transition-colors flex items-center justify-center cursor-pointer border-r border-[#393b40]"
           >
