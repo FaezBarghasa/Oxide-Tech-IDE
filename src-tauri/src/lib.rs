@@ -18,6 +18,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             handlers::core_ops::discover_cuda_devices,
             handlers::core_ops::parse_source_symbols,
+            handlers::core_ops::slice_differential_context,
             handlers::core_ops::create_task_worktree,
             handlers::core_ops::validate_swarm_dag_tasks,
             handlers::file_ops::read_workspace_file,

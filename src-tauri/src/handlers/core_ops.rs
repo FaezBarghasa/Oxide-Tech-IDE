@@ -1,5 +1,5 @@
 use oxide_core::{
-    discover_cuda, CudaDiscoveryResult, SymbolChunk, TokenixEngine, WorktreeManager,
+    discover_cuda, CudaDiscoveryResult, SlicedContext, SymbolChunk, TokenixEngine, WorktreeManager,
     SwarmDag, TaskNode, AgentType, WaveScheduler,
 };
 use std::path::PathBuf;
@@ -12,6 +12,11 @@ pub fn discover_cuda_devices() -> CudaDiscoveryResult {
 #[tauri::command]
 pub fn parse_source_symbols(source: String, file_path: String) -> Result<Vec<SymbolChunk>, String> {
     TokenixEngine::parse_symbols(&source, &file_path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn slice_differential_context(source: String, target_symbol: String) -> Result<SlicedContext, String> {
+    TokenixEngine::slice_context(&source, &target_symbol).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -45,3 +50,4 @@ pub fn validate_swarm_dag_tasks(task_descriptions: Vec<(String, String)>) -> Res
         format!("Sorted Task Count: {}", sorted.len()),
     ])
 }
+

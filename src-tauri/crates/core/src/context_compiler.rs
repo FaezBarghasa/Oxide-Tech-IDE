@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use crate::errors::{OxideError, OxideResult};
-use syn::visit::Visit;
 use syn::Item;
 use quote::ToTokens;
 

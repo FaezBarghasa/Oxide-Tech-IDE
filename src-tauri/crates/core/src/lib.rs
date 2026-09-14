@@ -13,7 +13,7 @@ pub mod telemetry;
 pub mod worktree_manager;
 
 pub use approvals::{MergeDecision, SwarmCritic, TaskState, Workflow};
-pub use context_compiler::{SymbolChunk, TokenixEngine};
+pub use context_compiler::{SlicedContext, SymbolChunk, TokenixEngine};
 pub use cuda_discovery::{discover_cuda, CudaDeviceDetails, CudaDiscoveryResult};
 pub use dag::{AgentType, SwarmDag, TaskNode, TaskStatus, WaveScheduler};
 pub use errors::{OxideError, OxideResult};

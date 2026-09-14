@@ -29,3 +29,7 @@ export * from './layout/Omnibar';
 export * from './layout/TransientOverlay';
 export * from './layout/SettingsModal';
 export * from './studio/ModelCatalog';
+export * from './studio/CanvasCodeGraph';
+export * from './orchestration/TimelineScrubber';
+export * from './orchestration/ReActDagVisualizer';
+export * from './orchestration/HitlInterruptModal';
