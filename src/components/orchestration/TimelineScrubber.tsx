@@ -1,5 +1,5 @@
 import React from 'react';
-import { GitBranch, Check, Play, Eye, Sparkles, Layers } from 'lucide-react';
+import { GitBranch, Check, Eye, Sparkles, Layers } from 'lucide-react';
 import { GhostBranchHypothesis } from '../../types/ast';
 
 interface TimelineScrubberProps {

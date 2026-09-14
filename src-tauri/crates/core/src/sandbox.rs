@@ -23,8 +23,8 @@ impl SandboxExecutor {
         command: &[&str],
         env_vars: &[(String, String)],
     ) -> OxideResult<ExecutionResult> {
-        let (stdout_read, stdout_write) = pipe().map_err(|e| OxideError::IoError(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))?;
-        let (stderr_read, stderr_write) = pipe().map_err(|e| OxideError::IoError(std::io::Error::new(std::io::ErrorKind::Other, e.to_string())))?;
+        let (stdout_read, stdout_write) = pipe().map_err(|e| OxideError::IoError(std::io::Error::other(e.to_string())))?;
+        let (stderr_read, stderr_write) = pipe().map_err(|e| OxideError::IoError(std::io::Error::other(e.to_string())))?;
 
         match unsafe { fork() } {
             Ok(ForkResult::Parent { child }) => {

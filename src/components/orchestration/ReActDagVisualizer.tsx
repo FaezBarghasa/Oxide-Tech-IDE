@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, CheckCircle2, XCircle, PauseCircle, ArrowRight, ShieldAlert, Cpu } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, PauseCircle, ArrowRight, ShieldAlert, Cpu } from 'lucide-react';
 import { DagTaskNode } from '../../types/ast';
 
 interface ReActDagVisualizerProps {

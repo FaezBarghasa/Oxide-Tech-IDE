@@ -64,6 +64,12 @@ pub struct SwarmDag {
     pub index_to_id: HashMap<NodeIndex, Uuid>,
 }
 
+impl Default for SwarmDag {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SwarmDag {
     pub fn new() -> Self {
         Self {
@@ -83,11 +89,11 @@ impl SwarmDag {
 
     pub fn add_dependency(&mut self, from_task_id: Uuid, to_task_id: Uuid) -> OxideResult<()> {
         let from_index = self.node_map.get(&from_task_id)
-            .ok_or_else(|| OxideError::DependencyNotMet { task_id: from_task_id })?
+            .ok_or(OxideError::DependencyNotMet { task_id: from_task_id })?
             .0;
 
         let to_index = self.node_map.get(&to_task_id)
-            .ok_or_else(|| OxideError::DependencyNotMet { task_id: to_task_id })?
+            .ok_or(OxideError::DependencyNotMet { task_id: to_task_id })?
             .0;
 
         self.graph.add_edge(from_index, to_index, ());

@@ -97,7 +97,7 @@ impl TokenixEngine {
                 }
                 Item::Use(item_use) => {
                     sliced_output.push_str(&item_use.to_token_stream().to_string());
-                    sliced_output.push_str("\n");
+                    sliced_output.push('\n');
                 }
                 _ => {}
             }
