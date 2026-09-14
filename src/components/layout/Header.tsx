@@ -7,10 +7,13 @@ import { useDebugStore } from '../../state/debugStore';
 import { tauriCommands } from '../../services/tauri';
 import { MainMenuDropdown } from './menu/MainMenuDropdown';
 
-type ConfigKey = 'run' | 'check' | 'clippy' | 'test' | 'bench' | 'playwright' | 'slint' | 'embedded' | 'iced';
+type ConfigKey = 'run' | 'check' | 'clippy' | 'test' | 'bench' | 'probers' | 'openocd' | 'qemu' | 'playwright' | 'slint' | 'embedded' | 'iced';
 
 const CONFIGS: Record<ConfigKey, { label: string; cmd: string }> = {
-  run: { label: 'Cargo run', cmd: 'run' },
+  run: { label: 'Cargo run (Desktop)', cmd: 'run' },
+  probers: { label: 'probe-rs: STM32F4 (Hardware)', cmd: 'probe-rs run --chip STM32F407VGT6' },
+  openocd: { label: 'OpenOCD: GDB Remote', cmd: 'openocd' },
+  qemu: { label: 'QEMU: Cortex-M3 (Emulator)', cmd: 'qemu' },
   check: { label: 'Cargo check', cmd: 'check' },
   clippy: { label: 'Cargo clippy', cmd: 'clippy' },
   test: { label: 'Cargo test (all)', cmd: 'test' },

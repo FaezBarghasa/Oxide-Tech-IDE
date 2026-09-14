@@ -32,14 +32,15 @@
 
 ---
 
-### 4. JetBrains Step-by-Step LLDB / DAP Debugger (`Shift+F9`)
-![RustRover Debugger](docs/assets/rustrover_debugger.png)
+### 4. JetBrains Step-by-Step MCU & Hardware Debugger (`Shift+F9`)
+![RustRover MCU Debugger](docs/assets/rustrover_mcu_debugger.png)
 
-* **Debug Controls Strip**: Resume / Pause (`F9`), Stop (`Ctrl+F2`), Step Over (`F8`), Step Into (`F7`), Step Out (`Shift+F8`), and Rerun session (`Ctrl+F5`).
-* **Frames & Call Stack Panel**: Interactive stack frame browser detailing execution locations across threads and crates.
-* **Breakpoints Management**: Gutter-clickable line breakpoints with toggle enable/disable and memory address mapping.
-* **Variables Tree (Darcula Inspector)**: Recursive hierarchical tree inspection of local and global variables with nested struct and array expansion.
-* **Watch Expressions & LLDB Console**: Live expression evaluator (`+ Add Watch`) and raw LLDB stdout / interactive command feed.
+* **Multi-Engine Debugging Core**: Instant switching between **`probe-rs`** (CMSIS-DAP / ST-Link / J-Link SWD/JTAG), **`OpenOCD`** GDB Remote, **`QEMU`** System Emulator, **`defmt RTT`** live telemetry, and **`LLDB`** desktop native targets.
+* **Debug Controls Strip**: Resume / Pause (`F9`), Stop (`Ctrl+F2`), Step Over Asm/Line (`F8`), Step Into (`F7`), Step Out (`Shift+F8`), Flash Firmware (`probe-rs run`), and Core Reset (`Ctrl+F5`).
+* **SVD Peripheral Registers Inspector**: Real-time bitfield tree explorer with live read/write access to MCU registers (e.g. `GPIOA->MODER`, `GPIOA->ODR`, `RCC->CR`, `USART1`).
+* **defmt RTT Real-Time Telemetry**: Microsecond-accurate deferred formatting log stream decoded directly from target RAM buffer without semihosting delays.
+* **QEMU System Emulator**: Cortex-M0/M3/M4/RISC-V machine emulator with GDB stub `:1234` and semihosting console integration.
+* **Hardware Probes & Target Chip Selector**: Auto-discovery of attached USB probes (voltage, speed, serial) and target chips (`STM32F4`, `STM32H7`, `nRF52840`, `RP2040`, `ESP32-C3`).
 * **Active Execution Line Highlight**: Monaco editor yellow glyph arrow and blue paused line indicator.
 
 ---

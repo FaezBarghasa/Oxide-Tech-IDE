@@ -68,4 +68,12 @@ export const tauriCommands = {
   embeddedSimInjectInput: (sessionId: string, inputType: string, payload: unknown): Promise<string> => invoke('embedded_sim_inject_input', { sessionId, inputType, payload }),
   icedFetchWidgetTree: (cratePath: string): Promise<import('../types/visualWorkstation').IcedWidgetNode> => invoke('iced_fetch_widget_tree', { cratePath }),
   icedTriggerHotReload: (cratePath: string): Promise<unknown> => invoke('iced_trigger_hot_reload', { cratePath }),
+
+  // MCU Hardware & Target Debugging (probe-rs, OpenOCD, defmt, QEMU, SVD)
+  mcuDiscoverProbes: (): Promise<import('../types/mcuDebugger').McuDebugProbe[]> => invoke('mcu_discover_probes'),
+  mcuGetSupportedChips: (): Promise<import('../types/mcuDebugger').McuTargetChip[]> => invoke('mcu_get_supported_chips'),
+  mcuFlashFirmware: (probeId: string, chip: string, elfPath: string, tool: string): Promise<import('../types/mcuDebugger').McuFlashResult> => invoke('mcu_flash_firmware', { probeId, chip, elfPath, tool }),
+  mcuPollDefmtRtt: (sessionId: string): Promise<import('../types/mcuDebugger').DefmtLogPacket[]> => invoke('mcu_poll_defmt_rtt', { sessionId }),
+  mcuLaunchQemu: (config: import('../types/mcuDebugger').QemuSessionConfig): Promise<string[]> => invoke('mcu_launch_qemu', { config }),
+  mcuReadPeripheralRegisters: (peripheralName: string): Promise<import('../types/mcuDebugger').PeripheralBlock> => invoke('mcu_read_peripheral_registers', { peripheralName }),
 };
