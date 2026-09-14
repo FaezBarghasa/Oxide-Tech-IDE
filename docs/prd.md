@@ -2,76 +2,72 @@
 
 ## 1. Executive Summary
 
-**Oxide Tech IDE** is an enterprise-grade, high-performance integrated development environment engineered to compete directly with **JetBrains RustRover, CLion, and IntelliJ IDEA**, while functioning as an ultra-fast **Full-Stack Visual Engineering Workstation** tailored for Systems Programming (Rust), Embedded Hardware Development (STM32, Cortex-M, RISC-V), and Declarative Visual Engineering (Slint, Iced, Embedded Graphics, Playwright E2E).
+**Oxide Tech IDE** is an enterprise-grade, high-performance integrated development environment and **Central Nervous System / Visual Orchestration Layer** for advanced systems programming, embedded hardware development, local AI agentic workflows, and declarative visual engineering.
 
-Built with **Tauri v2 + React 19 + TypeScript (strict mode, zero `any`) + Rust (`oxide_core`)**, Oxide Tech IDE delivers sub-millisecond local-first responsiveness, minimal memory footprint (<200MB RSS idle vs 1.5GB+ JVM), and tight integration with embedded debuggers and AI assistance.
+Built with **Tauri v2 + React 19 + TypeScript (strict mode, zero `any`) + Rust (`oxide_core`)**, Oxide Tech IDE combines **1:1 JetBrains RustRover/CLion UX parity** with deep, purpose-built integrations for:
+1. **Embedded & Real-Time Hardware**: First-class support for `r_klipp` (3D printer firmware architecture), `embedded-hal`, `probe-rs`, `defmt` RTT, SVD peripheral register mapping, and QEMU Cortex-M/RISC-V emulation.
+2. **Local AI & Agentic Orchestration ("Oxide Brain")**: Model Context Protocol (MCP) server management, AST-aware local RAG (Tree-sitter + Qdrant + SurrealDB), sandboxed Wasm/Wasmtime execution, and human-in-the-loop (HITL) approval gates.
+3. **OS & Systems Programming**: Native Redox OS microkernel development workflow, Unix-like IPC/network daemon integration (`netstack`, `ipcd`), zero-copy binary inspection (`rkyv`, `postcard`), and PTY session multiplexing.
+4. **Visual Engineering & CAD/EDA Convergence**: Live Slint/Iced previews, Playwright E2E visual regression, and programmatic CAD/EDA preview panes for `oxide-eda` and Forge engines (`parametric-forge`, `circuit-forge`).
 
 ---
 
-## 2. Product Objectives & Target Audience
+## 2. Product Objectives & Target Ecosystem
 
-### 2.1 Core Target Audience
-- **Systems & Embedded Engineers**: Rust developers working on Cortex-M4F/M7, STM32, Redox OS, and bare-metal targets requiring seamless probe-rs and defmt RTT support.
-- **Desktop & Native UI Developers**: Engineers building modern cross-platform interfaces using Slint markup, Iced GUI, and Web frameworks.
-- **Enterprise Rust Developers**: Teams requiring JetBrains-grade code navigation, intelligent refactoring, multi-branch conflict resolution, and cargo workspace management.
+### 2.1 Developer Ecosystem Profile
+- **Systems & Embedded Engineers**: Rust developers creating bare-metal firmware (`no_std`), Cortex-M4F/M7 kinematics, and motor controllers (`r_klipp`, TMC drivers, SPI/I2C peripherals).
+- **OS & Microkernel Developers**: Systems engineers developing drivers, servers, and microkernel components for Redox OS and embedded Linux.
+- **Agentic AI & Meta-Tooling Architects**: Engineers building autonomous coding pipelines using MCP servers, `.agentic`, `.evolver`, `.vibe-loop.json`, and local vector databases.
+- **Parametric Hardware & EDA Designers**: Developers generating schematics, PCBs, and 3D geometries programmatically via Rust crates.
 
 ### 2.2 Success Metrics & Key Results (OKRs)
-- **Startup Time**: Cold start to interactive editor in `< 400ms`.
-- **Memory Footprint**: Base workspace footprint `< 250MB` RSS.
+- **Startup Latency**: Cold start to interactive editor in `< 400ms`.
+- **Memory Footprint**: Base workspace footprint `< 250MB` RSS (vs. 1.5GB+ JVM for standard JetBrains suites).
 - **LSP Latency**: Completion and hover response times `< 20ms` via persistent `rust-analyzer` JSON-RPC stdio daemon.
-- **Crash Recovery & Safety**: Zero code loss via granular append-only Local History snapshots.
+- **Zero Loss Local History**: Deterministic snapshot recovery with zero code loss and sub-second rollback.
+- **Hardware Loop Latency**: One-click build-flash-log cycle in `< 2.5s` via direct probe-rs SWD link.
 
 ---
 
-## 3. Feature Specifications
+## 3. Detailed Feature Specifications
 
 ### 3.1 JetBrains RustRover UX & Navigation Parity
-- **Global Search Everywhere (`Shift+Shift`)**: Unified multi-category search across All, Classes/Structs, Files, Symbols, Actions, and AI suggestions with fuzzy ranking.
-- **Top Menu Hierarchy & Keymaps**: 12 top-level cascading menus with default IntelliJ / RustRover keymap bindings (`Shift+F10`, `Shift+F9`, `Ctrl+F9`, `Alt+Enter`, `Ctrl+Alt+S`).
-- **Context Actions & Quick Fixes (`Alt+Enter`)**: AI auto-fix, derive macro injection, Cargo check invocation, and syn macro expansion.
-- **Flexible Spatial Docking (`flexlayout-react`)**: Left, right, and bottom tool stripes with tear-off, split, and maximize capabilities.
+- **Global Search Everywhere (`Shift+Shift`)**: Fast fuzzy searching across All, Classes/Structs, Files, Symbols, Actions, and Oxide AI.
+- **JetBrains Keymap & Spatial Docking**: Standard keybindings (`Shift+F10`, `Shift+F9`, `Ctrl+F9`, `Alt+Enter`, `Ctrl+Alt+S`) and `flexlayout-react` docking engine with persistent layout storage (`~/.oxide/layout.json`).
+- **Context Actions (`Alt+Enter`)**: AI quick-fix, derive macro insertion, syn macro expansion, and cargo check trigger.
+- **3-Way Visual Merge Window**: Ours, Base, and Theirs 3-pane merge tool with live interactive resolved buffer editor.
 
-### 3.2 High-Performance Language Server Protocol (`rust-analyzer`)
-- Persistent asynchronous stdio JSON-RPC 2.0 daemon.
-- Document synchronization: `didOpen`, `didChange`, `didSave`, and `didClose`.
-- Inlay hints (parameter names, chained return types, let bindings).
-- Real-time compiler diagnostics and Monaco marker overlays.
+### 3.2 Embedded & `r_klipp` Hardware Workstation
+- **Native `r_klipp` Workspace Detection**: Auto-detects 3D printer firmware and embedded crates (`embedded-hal`, `r_klipp_thermal`, `r_klipp_motion`).
+- **One-Click Build, Flash & RTT Log**: Chains `cargo build --target thumbv7em-none-eabihf` → `probe-rs run` → real-time `defmt` RTT decoding without semihosting delays.
+- **Context-Aware SVD Inspector**: Auto-scrolls and highlights peripheral registers (`GPIOA`, `RCC`, `TIM2`) in the SVD bitfield inspector when hovered or navigated in editor code.
+- **Thermal & Kinematics Telemetry Dashboard**: Real-time graphs for heater curves, thermistor readings, stepper step-timing, and kinematics state.
+- **QEMU System Emulator**: Cortex-M0/M3/M4/RISC-V machine emulator with GDB stub `:1234` and semihosting console integration.
 
-### 3.3 Full-Duplex Interactive PTY Terminal
-- Native UNIX pseudo-terminal via `portable-pty`.
-- Asynchronous streaming with `tokio` background thread loops.
-- `xterm.js` front-end with `xterm-addon-fit`, ANSI colors, and multi-session tabs.
+### 3.3 First-Class Model Context Protocol (MCP) & AI Agentic Layer
+- **Built-in MCP Server Hub**: Visual control panel to discover, toggle, and inspect local and remote MCP servers (`mcp-probe-rs`, `mcp-cargo-gatekeeper`, `mcp-qemu-redox`).
+- **Human-in-the-Loop (HITL) Approvals**: Integrated review modal and editor gutter badges for reviewing and approving agent-proposed code mutations or hardware commands.
+- **AST-Aware Local RAG (`Oxide Brain`)**: Queries local Tree-sitter AST syntax and vector embeddings (`qdrant` / `fastembed`) to supply LLMs with precise semantic context.
+- **Self-Evolution & Meta-Tooling**: Syntax support and validation for `.vibe-loop.json`, `.evolver`, `.agentic`, and command palette action to trigger `self-evolver` routines safely.
 
-### 3.4 Autonomous Filesystem Watcher & Local History
-- Recursive file system event monitoring via `notify` with noise filtering (`target/`, `.git/objects/`).
-- Granular append-only revision snapshots on file saves, edits, and merge actions.
-- JetBrains-style Local History tool window with revision comparison and one-click rollback.
+### 3.4 OS & Redox Systems Development
+- **Redox OS Development Mode**: Pre-configured environment for compiling and running Redox components (`netstack`, `ipcd`, `logd`, `randd`) with QEMU microkernel launch hooks.
+- **Wasm/Wasmtime Isolated Sandbox**: Executes untrusted or agentic code snippets in an isolated WebAssembly sandbox with resource limits before applying diffs.
+- **Zero-Copy Serialization Debugger**: Decodes and inspects `rkyv` and `postcard` binary hex dumps into readable Rust structs based on local crate ASTs.
 
-### 3.5 Cargo Test Runner & 3-Way Merge Resolution
-- Dynamic test discovery via `cargo test -- --list --format=terse`.
-- Single and suite test execution with live stdout/stderr capture and failure parsing.
-- 3-Pane visual merge modal (Ours, Base, Theirs) with real-time resolved buffer editor.
-
-### 3.6 Hardware & Embedded Systems Workstation
-- Multi-engine debug support: `probe-rs`, `OpenOCD`, `QEMU` Cortex-M emulator, and `LLDB`.
-- Live SVD peripheral register tree with bitfield read/write inspection.
-- Microsecond-accurate `defmt` RTT logging directly from target RAM.
-- MQTT 5.0 pub/sub telemetry terminal with wildcard topic filters.
-
-### 3.7 Visual Engineering Workstations
-- **Slint Declarative Preview**: Live software canvas rendering with bi-directional pointer events.
-- **Embedded Graphics Display Simulator**: Hardware profiles (SSD1306, ST7789, ILI9341, e-Ink) with 600% zoom and D-pad input injection.
-- **Iced GUI Inspector**: Widget hierarchy tree inspection and hot reload.
-- **Playwright Visual E2E**: Test runner and visual regression pixel diffing.
+### 3.5 Visual Engineering & CAD/EDA Convergence
+- **Unified `.oxide-workspace` Protocol**: Workspace descriptor combining Rust crates, `oxide-eda` schematics/PCBs, `Oxide-3d` CAD models, and agent journals.
+- **Live Forge Preview Panes**: Split-pane visualizers for `parametric-forge`, `visual-forge`, and `circuit-forge` rendering outputs side-by-side with code.
+- **Slint & Iced Live Previews**: Real-time canvas rendering with bi-directional pointer events and sub-500ms hot reload.
+- **Playwright E2E Visual Regression**: Pixel-by-pixel diff comparisons against golden image baselines.
 
 ---
 
 ## 4. Non-Functional Requirements (NFRs)
 
-| Attribute | Requirement |
+| Category | Specification |
 | :--- | :--- |
-| **Performance** | Editor typing latency `< 8ms`, Terminal render FPS `>= 60fps`. |
-| **Security** | Zero telemetry leakage; local-first secret isolation; sandboxed command execution. |
-| **Portability** | Tier-1 support for Linux (Pop!_OS / Ubuntu / Wayland / X11), macOS, and Windows. |
-| **Code Quality** | Strict TypeScript (`zero any`), zero `unwrap()` in production Rust paths, Clippy clean. |
-| **Offline Resilience** | 100% functional without internet connectivity; local LSP and embedded toolchains. |
+| **Performance** | Input-to-render latency `< 8ms`, 60 FPS terminal & visual canvas rendering, `< 250MB` idle RSS. |
+| **Security & Privacy** | Local-first architecture; `PrivacyGuard` secret redaction; sandboxed Wasm execution. |
+| **Platform Support** | Linux (Pop!_OS Wayland/X11, Ubuntu), macOS, Windows; offline-first functionality without cloud reliance. |
+| **Code Standard** | Strict TypeScript (`zero any`), no `unwrap()` in production Rust backend, 100% `cargo clippy -- -D warnings` and `cargo fmt` adherence. |

@@ -1,139 +1,166 @@
 # Oxide Tech IDE — Architecture & Interaction Diagrams
 
-## 1. System Context & Component Architecture (C4 Model)
+## 1. Complete System Context & Ecosystem Blueprint (C4 Model)
 
 ```mermaid
 graph TD
-    User["👨‍💻 Developer / Systems Engineer"]
+    User["👨‍💻 Systems & Embedded Engineer"]
 
-    subgraph DesktopApp ["Oxide Tech IDE (Tauri v2 Desktop App)"]
-        subgraph Webview ["React 19 Frontend (Webview)"]
-            Monaco["Monaco Editor (Rust Tokenizer & Inlay Hints)"]
-            Dock["FlexLayout Spatial Docking"]
-            Xterm["Xterm.js Terminal (Multi-Session)"]
-            State["Zustand Stores (Editor, FileSystem, Settings, Debug)"]
-            UIWindows["Tool Windows (Cargo, Tests, History, MQTT, Slint, MCU)"]
+    subgraph OxideIDE ["Oxide Tech IDE (Tauri v2 Workstation)"]
+        subgraph Frontend ["React 19 + TypeScript Frontend (Strict Zero-Any)"]
+            Monaco["Monaco Editor (Rust Syntax, Inlay Hints, Gutter Diffs)"]
+            Dock["FlexLayout Spatial Docking (JetBrains Layout)"]
+            Xterm["Xterm.js Interactive PTY Terminal (Multi-Session)"]
+            McpUI["MCP Server Hub & HITL Approvals Panel"]
+            SvdUI["SVD Peripheral & Register Inspector"]
+            KlippUI["r_klipp Thermal & Kinematics Dashboard"]
+            ForgeUI["Forge CAD / EDA Preview Canvas"]
         end
 
-        subgraph TauriBackend ["Tauri v2 Native Rust Backend"]
-            LspDaemonHandler["LSP Daemon Handler"]
-            PtyOps["PTY Session Manager"]
-            FsWatcher["Filesystem Watcher Daemon"]
-            TestRunner["Cargo Test Runner Ops"]
-            McuOps["MCU & Hardware Debug Bridge"]
+        subgraph TauriLayer ["Tauri v2 Native Bridge"]
+            LspHandler["lsp_daemon (rust-analyzer JSON-RPC)"]
+            PtyHandler["pty_ops (portable-pty daemon)"]
+            FsHandler["fs_watcher (notify recursive)"]
+            McuHandler["mcu_debugger_ops (probe-rs / QEMU / defmt)"]
+            TestHandler["test_runner_ops (cargo test runner)"]
+            ForgeHandler["visual_workstation_ops (Slint / Iced / Forge)"]
         end
 
-        subgraph CoreCrate ["oxide_core Crate"]
-            LocalHistory["LocalHistoryEngine"]
-            PtyAdapter["PtySessionAdapter"]
-            CortexHAL["Cortex HAL & Vector Engine"]
-            PrivacyFilter["PrivacyGuard & Secret Redactor"]
+        subgraph OxideCore ["oxide_core Crate (Rust Engine)"]
+            LocalHistory["LocalHistoryEngine (Append-Only Revisions)"]
+            ClaudeBridge["ClaudeBridge & McpServerHub"]
+            CortexEngine["CortexEngine (Tree-sitter AST & Local RAG)"]
+            SwarmCritic["SwarmCritic & Approval Gatekeeper"]
+            WasmSandbox["SandboxEngine (Wasmtime Runtime)"]
+            PrivacyFilter["PrivacyGuard (Secret Redaction)"]
         end
     end
 
-    subgraph HostSystem ["Host Operating System (Linux / Wayland / macOS)"]
-        RustAnalyzer["rust-analyzer (stdio JSON-RPC daemon)"]
-        CargoCLI["cargo / clippy / rustfmt"]
-        Bash["/bin/bash (UNIX pseudo-terminal)"]
-        ProbeRs["probe-rs (CMSIS-DAP / ST-Link)"]
-        TargetMCU["Hardware Target (STM32 / Cortex-M)"]
+    subgraph HostEcosystem ["Host System & Hardware Toolchains (Pop!_OS 24.04)"]
+        RA["rust-analyzer (Background Daemon)"]
+        Cargo["Cargo / Rustc / Clippy / Rustfmt"]
+        Bash["/bin/bash (UNIX PTY Shell)"]
+        ProbeRs["probe-rs / OpenOCD (SWD/JTAG)"]
+        TargetMCU["Hardware Target (STM32 / Cortex-M / r_klipp)"]
+        QemuSys["QEMU (Cortex-M / RISC-V / Redox OS)"]
+        LocalVectorDB["Qdrant Vector DB & SurrealDB Graph"]
     end
 
-    User -->|Keyboard / Mouse| Monaco
-    User -->|Gestures & Docking| Dock
+    User -->|Code Editing & Keymaps| Monaco
+    User -->|Spatial Window Layout| Dock
+    User -->|Terminal Operations| Xterm
+    User -->|Inspect Telemetry| KlippUI
+    User -->|Review Agent Actions| McpUI
 
-    Monaco <--> State
-    Dock --> UIWindows
-    Xterm <--> PtyOps
+    Monaco <-->|JSON-RPC via Tauri IPC| LspHandler
+    LspHandler <-->|stdio pipes| RA
 
-    Monaco -->|JSON-RPC via Tauri IPC| LspDaemonHandler
-    LspDaemonHandler <-->|stdio stream| RustAnalyzer
+    Xterm <-->|full-duplex stream| PtyHandler
+    PtyHandler <-->|pty master/slave| Bash
 
-    PtyOps <-->|portable-pty stream| Bash
-    FsWatcher -->|fs:change events| State
+    McuHandler <-->|SWD / JTAG link| ProbeRs
+    ProbeRs <-->|defmt RTT / SVD Registers| TargetMCU
+    McuHandler <-->|GDB stub :1234| QemuSys
 
-    TestRunner -->|cargo test -- --list| CargoCLI
-    McuOps -->|SWD / JTAG| ProbeRs
-    ProbeRs <-->|defmt RTT / SVD| TargetMCU
+    McpUI <--> ClaudeBridge
+    ClaudeBridge <--> LocalVectorDB
+    CortexEngine <--> LocalVectorDB
+    SwarmCritic --> WasmSandbox
 
-    TauriBackend --> CoreCrate
+    FsHandler -->|fs:change events| Frontend
+    TestHandler <-->|cargo test -- --list| Cargo
+
+    TauriLayer --> OxideCore
 ```
 
 ---
 
-## 2. Language Server Protocol (LSP) Sequence Diagram
+## 2. Embedded Build, Flash & `defmt` Telemetry Sequence
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Dev as Developer
-    participant Monaco as Monaco Editor
-    participant Client as lspClient.ts
-    participant Tauri as Tauri IPC (lsp_daemon.rs)
-    participant RA as rust-analyzer (Child Process)
+    participant IDE as Oxide Tech IDE
+    participant Cargo as Cargo Toolchain
+    participant Probe as probe-rs / ST-Link
+    participant MCU as STM32 / r_klipp Hardware
+    participant RTT as defmt RTT Decoder
 
-    Dev->>Monaco: Types code (e.g. `let mut buffer = `)
-    Monaco->>Client: onDidChangeModelContent
-    Client->>Tauri: lsp_did_change(path, text, version)
-    Tauri->>RA: {"method": "textDocument/didChange", "params": {...}}
+    Dev->>IDE: Clicks 'Flash & Run' (Shift+F10)
+    IDE->>Cargo: cargo build --target thumbv7em-none-eabihf --release
+    Cargo-->>IDE: Build Complete (ELF Binary generated)
+    IDE->>Probe: probe_rs_flash(target_elf, probe_id)
+    Probe->>MCU: SWD Erase & Write Flash Sectors
+    MCU-->>Probe: Flash Verified (100%)
+    Probe-->>IDE: Flash Success (Duration: 1.4s, Speed: 48 KB/s)
     
-    Dev->>Monaco: Triggers Autocompletion (`Ctrl+Space`)
-    Monaco->>Client: provideCompletionItems(pos)
-    Client->>Tauri: lsp_completion(path, line, col)
-    Tauri->>RA: {"method": "textDocument/completion", "params": {...}}
-    RA-->>Tauri: JSON-RPC Completion List Result
-    Tauri-->>Client: CompletionItem[]
-    Client-->>Monaco: Render suggestion popup
-    Monaco-->>Dev: Display suggestions with type signatures
-```
-
----
-
-## 3. PTY Full-Duplex Terminal Streaming Diagram
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Dev as Developer
-    participant Xterm as TerminalPanel (xterm.js)
-    participant Tauri as pty_ops.rs
-    participant Adapter as pty_adapter.rs
-    participant OS as /bin/bash (OS PTY)
-
-    Dev->>Xterm: Presses Keys (`cargo check\n`)
-    Xterm->>Tauri: pty_write(sessionId, "cargo check\n")
-    Tauri->>Adapter: write(&bytes)
-    Adapter->>OS: stdin pipe write
-
-    loop Background Async Output Stream
-        OS->>Adapter: stdout chunk (ANSI sequences)
-        Adapter->>Tauri: Background loop read
-        Tauri->>Xterm: emit("pty:output:{sessionId}", text)
-        Xterm->>Dev: Render colored terminal output
+    IDE->>Probe: Attach defmt RTT session
+    Probe->>MCU: Locate `_SEGGER_RTT` Control Block in RAM
+    
+    loop Real-time Telemetry Stream
+        MCU->>Probe: defmt binary frames in RTT buffer
+        Probe->>RTT: Raw byte packets
+        RTT->>IDE: Decoded structured log [timestamp, level, module, message]
+        IDE-->>Dev: Display in Debug Console & Thermal Dashboard
     end
 ```
 
 ---
 
-## 4. Local History Snapshot & Rollback Lifecycle
+## 3. AST-Aware Local RAG & Model Context Protocol (MCP) Workflow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Dev as Developer
+    participant UI as Oxide AI Chat / Monaco
+    participant Cortex as CortexEngine (Tree-sitter)
+    participant Qdrant as Qdrant Vector Store
+    participant MCP as MCP Server Hub
+    participant Gatekeeper as SwarmCritic (HITL)
+    participant LLM as Local / BYOK Model
+
+    Dev->>UI: "Why is the stepper motor skipping steps in r_klipp_motion?"
+    UI->>Cortex: Extract AST Context (active function, struct definitions)
+    Cortex->>Qdrant: Hybrid Vector + Keyword Search (embeddings + AST tokens)
+    Qdrant-->>Cortex: Top semantic chunks & documentation
+    
+    Cortex->>MCP: Query connected MCP tools (`mcp-probe-rs`, `mcp-cargo-gatekeeper`)
+    MCP-->>Cortex: Tool schemas & current hardware state
+    
+    Cortex->>LLM: Send enriched prompt (Code AST + Context + Hardware Telemetry)
+    LLM-->>UI: Proposed Code Fix + Command: `cargo test -p r_klipp_motion`
+    
+    UI->>Gatekeeper: Intercept execution request
+    Gatekeeper-->>Dev: Display Human-in-the-Loop Approval Modal
+    Dev->>Gatekeeper: Approve Change
+    Gatekeeper->>UI: Apply diff & execute command in Wasm/PTY sandbox
+```
+
+---
+
+## 4. 3-Way Merge & Local History Rollback State Diagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle: Active Editor File
-    Idle --> UserEdit: Types in Editor
-    UserEdit --> DebounceTimer: 1000ms idle
-    DebounceTimer --> SnapshotRecord: Auto Snapshot
+    [*] --> CleanWorkspace: Active Project
     
-    Idle --> ManualSave: Ctrl+S Save
-    ManualSave --> SnapshotRecord: 'manual-save' tag
-    
-    SnapshotRecord --> LocalHistoryEngine: Append to Revision List
-    LocalHistoryEngine --> Idle: Persisted
+    CleanWorkspace --> DocumentEdit: User / AI edits file
+    DocumentEdit --> AutoSnapshot: 1000ms idle debounce
+    CleanWorkspace --> ManualSave: Ctrl+S Save
+    ManualSave --> AutoSnapshot: 'manual-save' tag
+    AutoSnapshot --> CleanWorkspace: Stored in LocalHistoryEngine
 
-    Idle --> OpenHistoryToolWindow: Open Local History
-    OpenHistoryToolWindow --> SelectRevision: Select historical timestamp
-    SelectRevision --> InspectDiff: Side-by-Side Preview
-    InspectDiff --> RestoreRevision: Click 'Restore this Version'
-    RestoreRevision --> UpdateEditor: Apply Content & Snapshot 'revert' tag
-    UpdateEditor --> Idle
+    CleanWorkspace --> GitConflict: Git Pull / Rebase Conflict
+    GitConflict --> OpenThreeWayMerge: Launch 3-Way Merge Window
+    
+    state OpenThreeWayMerge {
+        [*] --> ComparePanes: Render Ours | Base | Theirs
+        ComparePanes --> ResolveLines: Interactive Merge & Conflict Selection
+        ResolveLines --> ApplyResolved: User clicks 'Apply Resolution & Save'
+    }
+    
+    ApplyResolved --> AutoSnapshot: '3-way-merge-resolved' tag
+    AutoSnapshot --> CleanWorkspace: Worktree Clean & Verified
 ```
