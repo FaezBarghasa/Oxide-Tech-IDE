@@ -9,6 +9,9 @@ import { ExtensionManager } from '../extensions/ExtensionManager';
 import { SkillsOrchestrator } from '../ai/SkillsOrchestrator';
 import { MCPExplorer } from '../mcp/MCPExplorer';
 import { PreviewContainer } from '../previews/PreviewContainer';
+import { CognitiveWorkspacePanel } from '../orchestration/CognitiveWorkspacePanel';
+import { CanvasCodeGraph } from '../studio/CanvasCodeGraph';
+import { TimelineScrubber } from '../orchestration/TimelineScrubber';
 
 export function TransientOverlay() {
   const { activeOverlay, setActiveOverlay, transientView, setTransientView } = useSettingsStore();
@@ -48,6 +51,12 @@ export function TransientOverlay() {
         return <ShieldAlert className="w-4.5 h-4.5 text-yellow-400" />;
       case 'previews':
         return <MonitorPlay className="w-4.5 h-4.5 text-purple-400" />;
+      case 'cognitive':
+        return <Cpu className="w-4.5 h-4.5 text-emerald-400" />;
+      case 'graph':
+        return <Network className="w-4.5 h-4.5 text-cyan-400" />;
+      case 'scrubber':
+        return <Play className="w-4.5 h-4.5 text-purple-400" />;
       default:
         return null;
     }
@@ -69,6 +78,12 @@ export function TransientOverlay() {
         return 'Model Context Protocol (MCP) Explorer';
       case 'previews':
         return 'Spatial Visual Previews Canvas';
+      case 'cognitive':
+        return 'Local Cognitive Runtime & Isolation Guard';
+      case 'graph':
+        return '120FPS GPU AST & Code Graph';
+      case 'scrubber':
+        return 'Parallel Ghost Sandbox Timeline Scrubber';
       default:
         return 'Transient Tool View';
     }
@@ -90,6 +105,38 @@ export function TransientOverlay() {
         return <MCPExplorer />;
       case 'previews':
         return <PreviewContainer />;
+      case 'cognitive':
+        return <CognitiveWorkspacePanel />;
+      case 'graph':
+        return <CanvasCodeGraph />;
+      case 'scrubber':
+        return (
+          <TimelineScrubber
+            hypotheses={[
+              {
+                id: 'h1',
+                name: 'Hypothesis A: Bounds Fix',
+                description: 'Add lifetime annotations to TokenixEngine struct references',
+                status: 'passed',
+                diffStats: { added: 14, deleted: 4 },
+                previewDiff: '+ pub struct SlicedContext<\'a> {\n- pub struct SlicedContext {',
+                estimatedAccuracy: 96,
+              },
+              {
+                id: 'h2',
+                name: 'Hypothesis B: Arc Cloning',
+                description: 'Wrap AST node references in Arc<RwLock> for safe concurrency',
+                status: 'evaluating',
+                diffStats: { added: 22, deleted: 10 },
+                previewDiff: '+ Arc::new(RwLock::new(nodes))',
+                estimatedAccuracy: 88,
+              },
+            ]}
+            selectedId="h1"
+            onSelect={() => {}}
+            onMerge={() => {}}
+          />
+        );
       default:
         return <div className="p-8 text-center text-xs opacity-50">Invalid transient view selected.</div>;
     }

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type ActiveOverlayType = 'omnibar' | 'harpoon' | 'prompt' | 'transient' | 'settings' | null;
-export type TransientViewType = 'rest' | 'serial' | 'mqtt' | 'extensions' | 'skills' | 'mcp' | 'previews' | null;
+export type TransientViewType = 'rest' | 'serial' | 'mqtt' | 'extensions' | 'skills' | 'mcp' | 'previews' | 'cognitive' | 'graph' | 'scrubber' | null;
 export type ApiProviderType = 'gemini' | 'openai' | 'anthropic' | 'custom';
 
 interface SettingsStoreState {
