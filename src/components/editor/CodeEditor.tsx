@@ -6,6 +6,7 @@ import { useCompilationStore } from '../../state/compilationStore';
 import { useFileSystemStore } from '../../state/fileSystemStore';
 import { useDebugStore } from '../../state/debugStore';
 import { setupMonacoRust } from '../../services/monaco';
+import { initializeLspClient, syncDocumentOpen, syncDocumentChange } from '../../services/lspClient';
 import { tauriCommands } from '../../services/tauri';
 import { EditorTabs } from './EditorTabs';
 import { AIFloatingPrompt } from '../ai/AIFloatingPrompt';
@@ -16,6 +17,7 @@ export function CodeEditor() {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const decorationsCollectionRef = useRef<monaco.editor.IEditorDecorationsCollection | null>(null);
   const breakpointsRef = useRef<Set<number>>(new Set());
+  const docVersionRef = useRef<number>(1);
 
   const { currentFile, files, updateFileContent } = useEditorStore();
   const fileData = currentFile ? files.get(currentFile) : null;
@@ -29,7 +31,10 @@ export function CodeEditor() {
 
   useEffect(() => {
     setupMonacoRust();
-  }, []);
+    if (workspaceRoot) {
+      initializeLspClient(workspaceRoot);
+    }
+  }, [workspaceRoot]);
 
   // Sync store breakpoints with local breakpointsRef when file changes or store breakpoints change
   useEffect(() => {
@@ -72,6 +77,8 @@ export function CodeEditor() {
       editorRef.current.onDidChangeModelContent(() => {
         const val = editorRef.current?.getValue();
         updateFileContent(currentFile, val || '');
+        docVersionRef.current += 1;
+        syncDocumentChange(currentFile, val || '', docVersionRef.current);
         updateGutterDecorations();
       });
 
@@ -120,6 +127,11 @@ export function CodeEditor() {
         editorRef.current.setValue(fileData?.content || '');
       }
       monaco.editor.setModelLanguage(model!, getLanguage(currentFile));
+    }
+
+    if (currentFile && fileData?.content !== undefined) {
+      docVersionRef.current = 1;
+      syncDocumentOpen(currentFile, fileData.content, 1);
     }
 
     updateGutterDecorations();

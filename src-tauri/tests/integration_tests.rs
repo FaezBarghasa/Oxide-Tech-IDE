@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod integration_tests {
-    use core::{AgentType, SandboxCleanup, SandboxExecutor, SwarmDag, TaskNode, WaveScheduler};
+    use oxide_core::{
+        AgentType, SandboxCleanup, SandboxExecutor, SwarmDag, TaskNode, WaveScheduler,
+    };
     use std::path::PathBuf;
     use uuid::Uuid;
 
@@ -60,5 +62,34 @@ mod integration_tests {
             PathBuf::from(format!("/tmp/worktree-{}", agent_id)),
         );
         let _ = cleanup.cleanup_all().await;
+    }
+
+    #[tokio::test]
+    async fn test_pty_terminal_session() {
+        use oxide_core::PtyTerminalSession;
+        use std::io::Read;
+
+        let session = PtyTerminalSession::spawn(Some("/bin/bash"), Some("/tmp"), 80, 24).unwrap();
+        let mut reader = session.try_clone_reader().unwrap();
+
+        // Write command into PTY
+        session.write_bytes(b"echo oxide_pty_test\r\n").unwrap();
+
+        // Read output
+        let mut buf = [0u8; 1024];
+        let mut total_output = String::new();
+        for _ in 0..10 {
+            if let Ok(n) = reader.read(&mut buf) {
+                if n > 0 {
+                    total_output.push_str(&String::from_utf8_lossy(&buf[..n]));
+                    if total_output.contains("oxide_pty_test") {
+                        break;
+                    }
+                }
+            }
+            tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+        }
+
+        assert!(total_output.contains("oxide_pty_test"));
     }
 }

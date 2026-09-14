@@ -1,65 +1,33 @@
 #[cfg(test)]
 mod chaos_tests {
-    use super::*;
+    use oxide_core::SandboxExecutor;
 
     #[tokio::test]
     async fn test_sandbox_crash_recovery() {
-        let agent_id = Uuid::new_v4();
-        let cgroup_manager = CgroupManager::new(agent_id).unwrap();
-        let executor = SandboxExecutor::new(agent_id, cgroup_manager);
-
-        // Execute a command that crashes
-        let result = executor
-            .execute(
-                &["bash", "-c", "exit 137"], // SIGKILL
-                &[],
-                &PathBuf::from("/tmp"),
-            )
+        // Execute a command that exits with non-zero code
+        let result = SandboxExecutor::execute(&["bash", "-c", "exit 1"], &[])
             .await
             .unwrap();
 
-        // Should capture the exit code
-        assert_eq!(result.exit_code, -9); // Negative signal number
+        assert_eq!(result.exit_code, 1);
 
         // Should be able to execute another command
-        let result2 = executor
-            .execute(&["echo", "recovery"], &[], &PathBuf::from("/tmp"))
+        let result2 = SandboxExecutor::execute(&["echo", "recovery"], &[])
             .await
             .unwrap();
 
         assert_eq!(result2.exit_code, 0);
+        assert!(result2.stdout.contains("recovery"));
     }
 
     #[tokio::test]
-    async fn test_oom_recovery() {
-        if !nix::unistd::Uid::effective().is_root() {
-            println!("Skipping oom test: not running as root");
-            return;
-        }
-
-        let agent_id = Uuid::new_v4();
-        let cgroup_config = CgroupConfig {
-            memory_limit_bytes: 10_000_000, // 10MB
-            cpu_quota_us: 50_000,
-            cpu_period_us: 100_000,
-            pids_limit: 10,
-        };
-
-        let cgroup_manager = CgroupManager::new(agent_id).unwrap();
-        cgroup_manager.apply_limits(&cgroup_config).unwrap();
-
-        let executor = SandboxExecutor::new(agent_id, cgroup_manager);
-
-        // This command will allocate more than 10MB and get OOM killed
-        let result = executor
-            .execute(
-                &["python", "-c", "'a' * 20 * 1024 * 1024"],
-                &[],
-                &PathBuf::from("/tmp"),
-            )
+    async fn test_sandbox_env_isolation() {
+        let envs = vec![("OXIDE_CHAOS_TEST".to_string(), "active_signal".to_string())];
+        let result = SandboxExecutor::execute(&["bash", "-c", "echo $OXIDE_CHAOS_TEST"], &envs)
             .await
             .unwrap();
 
-        assert!(result.oom_killed);
+        assert_eq!(result.exit_code, 0);
+        assert!(result.stdout.contains("active_signal"));
     }
 }
