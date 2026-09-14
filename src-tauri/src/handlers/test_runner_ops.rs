@@ -24,7 +24,9 @@ pub struct TestRunResult {
 }
 
 #[tauri::command]
-pub async fn discover_workspace_tests(workspace_path: String) -> Result<Vec<WorkspaceTestItem>, String> {
+pub async fn discover_workspace_tests(
+    workspace_path: String,
+) -> Result<Vec<WorkspaceTestItem>, String> {
     let path = Path::new(&workspace_path);
     let output = Command::new("cargo")
         .args(["test", "--", "--list", "--format=terse"])
@@ -86,7 +88,9 @@ pub async fn run_single_test(
         let panic_line = stdout
             .lines()
             .chain(stderr.lines())
-            .find(|l| l.contains("panicked at") || l.contains("assertion failed") || l.contains("FAILED"))
+            .find(|l| {
+                l.contains("panicked at") || l.contains("assertion failed") || l.contains("FAILED")
+            })
             .map(|l| l.trim().to_string());
         panic_line.or_else(|| Some("Test failed with non-zero exit code".to_string()))
     } else {

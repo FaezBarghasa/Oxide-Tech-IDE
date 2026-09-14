@@ -22,11 +22,13 @@ pub struct FsChangeEvent {
 
 #[tauri::command]
 pub async fn fs_watch_start(app: AppHandle, path: String) -> Result<bool, String> {
-    let mut guard = watcher_instance().lock().map_err(|_| "Watcher lock poisoned".to_string())?;
-    if let Some(ref state) = *guard {
-        if state.watched_path == path {
-            return Ok(true);
-        }
+    let mut guard = watcher_instance()
+        .lock()
+        .map_err(|_| "Watcher lock poisoned".to_string())?;
+    if let Some(ref state) = *guard
+        && state.watched_path == path
+    {
+        return Ok(true);
     }
 
     let target_path = path.clone();
@@ -85,7 +87,9 @@ pub async fn fs_watch_start(app: AppHandle, path: String) -> Result<bool, String
 
 #[tauri::command]
 pub async fn fs_watch_stop() -> Result<bool, String> {
-    let mut guard = watcher_instance().lock().map_err(|_| "Watcher lock poisoned".to_string())?;
+    let mut guard = watcher_instance()
+        .lock()
+        .map_err(|_| "Watcher lock poisoned".to_string())?;
     *guard = None;
     Ok(true)
 }

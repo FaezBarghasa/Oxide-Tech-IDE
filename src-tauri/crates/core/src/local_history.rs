@@ -1,8 +1,8 @@
+use crate::errors::{OxideError, OxideResult};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
-use crate::errors::{OxideError, OxideResult};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LocalHistoryRevision {
@@ -125,7 +125,11 @@ impl LocalHistoryEngine {
         Vec::new()
     }
 
-    pub fn get_revision_by_id(&self, file_path: &str, revision_id: &str) -> Option<LocalHistoryRevision> {
+    pub fn get_revision_by_id(
+        &self,
+        file_path: &str,
+        revision_id: &str,
+    ) -> Option<LocalHistoryRevision> {
         let revs = self.get_revisions(file_path);
         revs.into_iter().find(|r| r.id == revision_id)
     }

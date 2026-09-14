@@ -13,7 +13,9 @@ pub async fn local_history_record_snapshot(
 }
 
 #[tauri::command]
-pub async fn local_history_get_revisions(file_path: String) -> Result<Vec<LocalHistoryRevision>, String> {
+pub async fn local_history_get_revisions(
+    file_path: String,
+) -> Result<Vec<LocalHistoryRevision>, String> {
     let engine = LocalHistoryEngine::get_or_init_default();
     Ok(engine.get_revisions(&file_path))
 }
