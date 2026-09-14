@@ -9,21 +9,23 @@ mod chaos_tests {
         let executor = SandboxExecutor::new(agent_id, cgroup_manager);
 
         // Execute a command that crashes
-        let result = executor.execute(
-            &["bash", "-c", "exit 137"],  // SIGKILL
-            &[],
-            &PathBuf::from("/tmp"),
-        ).await.unwrap();
+        let result = executor
+            .execute(
+                &["bash", "-c", "exit 137"], // SIGKILL
+                &[],
+                &PathBuf::from("/tmp"),
+            )
+            .await
+            .unwrap();
 
         // Should capture the exit code
-        assert_eq!(result.exit_code, -9);  // Negative signal number
+        assert_eq!(result.exit_code, -9); // Negative signal number
 
         // Should be able to execute another command
-        let result2 = executor.execute(
-            &["echo", "recovery"],
-            &[],
-            &PathBuf::from("/tmp"),
-        ).await.unwrap();
+        let result2 = executor
+            .execute(&["echo", "recovery"], &[], &PathBuf::from("/tmp"))
+            .await
+            .unwrap();
 
         assert_eq!(result2.exit_code, 0);
     }
@@ -49,11 +51,14 @@ mod chaos_tests {
         let executor = SandboxExecutor::new(agent_id, cgroup_manager);
 
         // This command will allocate more than 10MB and get OOM killed
-        let result = executor.execute(
-            &["python", "-c", "'a' * 20 * 1024 * 1024"],
-            &[],
-            &PathBuf::from("/tmp"),
-        ).await.unwrap();
+        let result = executor
+            .execute(
+                &["python", "-c", "'a' * 20 * 1024 * 1024"],
+                &[],
+                &PathBuf::from("/tmp"),
+            )
+            .await
+            .unwrap();
 
         assert!(result.oom_killed);
     }

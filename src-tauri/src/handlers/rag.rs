@@ -1,8 +1,8 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
-use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SymbolInfo {
@@ -33,63 +33,83 @@ impl ASTIndexState {
 }
 
 // Scans the workspace and parses basic AST syntax nodes / signatures
-fn index_workspace_dir(dir: &Path, files: &mut HashMap<String, String>, symbols: &mut Vec<SymbolInfo>) {
+fn index_workspace_dir(
+    dir: &Path,
+    files: &mut HashMap<String, String>,
+    symbols: &mut Vec<SymbolInfo>,
+) {
     if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
             let path = entry.path();
             if path.is_dir() {
-                let name = path.file_name().map(|n| n.to_string_lossy()).unwrap_or_default();
-                if name != "node_modules" && name != "target" && name != "dist" && !name.starts_with('.') {
+                let name = path
+                    .file_name()
+                    .map(|n| n.to_string_lossy())
+                    .unwrap_or_default();
+                if name != "node_modules"
+                    && name != "target"
+                    && name != "dist"
+                    && !name.starts_with('.')
+                {
                     index_workspace_dir(&path, files, symbols);
                 }
             } else if path.is_file() {
-                let ext = path.extension().map(|e| e.to_string_lossy()).unwrap_or_default();
+                let ext = path
+                    .extension()
+                    .map(|e| e.to_string_lossy())
+                    .unwrap_or_default();
                 let is_supported = matches!(ext.as_ref(), "rs" | "ts" | "tsx" | "json" | "toml");
                 if !is_supported {
                     continue;
                 }
                 if let Ok(content) = fs::read_to_string(&path) {
                     let path_str = path.to_string_lossy().into_owned();
-                        
-                        // Parse basic signatures
-                        for (idx, line) in content.lines().enumerate() {
-                            let trimmed = line.trim();
-                            if trimmed.starts_with("fn ") || trimmed.starts_with("pub fn ") {
-                                let name = extract_name(trimmed, "fn ");
-                                symbols.push(SymbolInfo {
-                                    name,
-                                    symbol_type: "function".to_string(),
-                                    line_number: idx + 1,
-                                    file_path: path_str.clone(),
-                                });
-                            } else if trimmed.starts_with("struct ") || trimmed.starts_with("pub struct ") {
-                                let name = extract_name(trimmed, "struct ");
-                                symbols.push(SymbolInfo {
-                                    name,
-                                    symbol_type: "struct".to_string(),
-                                    line_number: idx + 1,
-                                    file_path: path_str.clone(),
-                                });
-                            } else if trimmed.starts_with("class ") || trimmed.starts_with("export class ") {
-                                let name = extract_name(trimmed, "class ");
-                                symbols.push(SymbolInfo {
-                                    name,
-                                    symbol_type: "class".to_string(),
-                                    line_number: idx + 1,
-                                    file_path: path_str.clone(),
-                                });
-                            } else if trimmed.starts_with("interface ") || trimmed.starts_with("export interface ") {
-                                let name = extract_name(trimmed, "interface ");
-                                symbols.push(SymbolInfo {
-                                    name,
-                                    symbol_type: "interface".to_string(),
-                                    line_number: idx + 1,
-                                    file_path: path_str.clone(),
-                                });
-                            }
+
+                    // Parse basic signatures
+                    for (idx, line) in content.lines().enumerate() {
+                        let trimmed = line.trim();
+                        if trimmed.starts_with("fn ") || trimmed.starts_with("pub fn ") {
+                            let name = extract_name(trimmed, "fn ");
+                            symbols.push(SymbolInfo {
+                                name,
+                                symbol_type: "function".to_string(),
+                                line_number: idx + 1,
+                                file_path: path_str.clone(),
+                            });
+                        } else if trimmed.starts_with("struct ")
+                            || trimmed.starts_with("pub struct ")
+                        {
+                            let name = extract_name(trimmed, "struct ");
+                            symbols.push(SymbolInfo {
+                                name,
+                                symbol_type: "struct".to_string(),
+                                line_number: idx + 1,
+                                file_path: path_str.clone(),
+                            });
+                        } else if trimmed.starts_with("class ")
+                            || trimmed.starts_with("export class ")
+                        {
+                            let name = extract_name(trimmed, "class ");
+                            symbols.push(SymbolInfo {
+                                name,
+                                symbol_type: "class".to_string(),
+                                line_number: idx + 1,
+                                file_path: path_str.clone(),
+                            });
+                        } else if trimmed.starts_with("interface ")
+                            || trimmed.starts_with("export interface ")
+                        {
+                            let name = extract_name(trimmed, "interface ");
+                            symbols.push(SymbolInfo {
+                                name,
+                                symbol_type: "interface".to_string(),
+                                line_number: idx + 1,
+                                file_path: path_str.clone(),
+                            });
                         }
-                        
-                        files.insert(path_str, content);
+                    }
+
+                    files.insert(path_str, content);
                 }
             }
         }
@@ -99,7 +119,9 @@ fn index_workspace_dir(dir: &Path, files: &mut HashMap<String, String>, symbols:
 fn extract_name(line: &str, keyword: &str) -> String {
     if let Some(idx) = line.find(keyword) {
         let after = &line[idx + keyword.len()..];
-        let end = after.find(|c: char| !c.is_alphanumeric() && c != '_').unwrap_or(after.len());
+        let end = after
+            .find(|c: char| !c.is_alphanumeric() && c != '_')
+            .unwrap_or(after.len());
         after[..end].to_string()
     } else {
         "unknown".to_string()
@@ -118,19 +140,22 @@ pub async fn trigger_workspace_indexing(
 
     let mut files = HashMap::new();
     let mut symbols = Vec::new();
-    
+
     index_workspace_dir(&path, &mut files, &mut symbols);
-    
+
     let files_len = files.link_len_count();
     let symbols_len = symbols.len();
 
     let mut state_files = state.files.lock().unwrap();
     let mut state_symbols = state.symbols.lock().unwrap();
-    
+
     *state_files = files;
     *state_symbols = symbols;
 
-    Ok(format!("Indexed {} files, extracted {} symbols", files_len, symbols_len))
+    Ok(format!(
+        "Indexed {} files, extracted {} symbols",
+        files_len, symbols_len
+    ))
 }
 
 trait LengthCount {
@@ -163,7 +188,7 @@ pub fn get_predictive_context(
 
     let symbols = state.symbols.lock().unwrap();
     let files = state.files.lock().unwrap();
-    
+
     let mut file_scores: HashMap<String, usize> = HashMap::new();
 
     // Check symbol overlap

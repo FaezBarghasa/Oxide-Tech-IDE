@@ -1,6 +1,6 @@
-use std::sync::{Mutex, OnceLock};
 use serde::Serialize;
-use tokio::time::{sleep, Duration};
+use std::sync::{Mutex, OnceLock};
+use tokio::time::{Duration, sleep};
 
 fn serial_logs() -> &'static Mutex<Vec<String>> {
     static LOGS: OnceLock<Mutex<Vec<String>>> = OnceLock::new();
@@ -29,10 +29,7 @@ pub struct HardwareLogsResponse {
 }
 
 #[tauri::command]
-pub async fn connect_serial_port_daemon(
-    port: String,
-    baud_rate: u32,
-) -> Result<String, String> {
+pub async fn connect_serial_port_daemon(port: String, baud_rate: u32) -> Result<String, String> {
     let mut connected = is_serial_connected().lock().unwrap();
     if *connected {
         return Ok(format!("Serial port already connected on {}", port));
@@ -51,7 +48,7 @@ pub async fn connect_serial_port_daemon(
                     break;
                 }
             }
-            
+
             let log_msg = format!(
                 "[{}] [SERIAL] COM_PORT={} BAUD={} -> TEMP_SENSOR=23.{} C | GYRO_X=0.0{} | ADDR=0x4A",
                 chrono::Utc::now().to_rfc3339(),
@@ -60,7 +57,7 @@ pub async fn connect_serial_port_daemon(
                 idx % 9,
                 idx % 4
             );
-            
+
             {
                 let mut logs = serial_logs().lock().unwrap();
                 logs.push(log_msg);
@@ -68,20 +65,20 @@ pub async fn connect_serial_port_daemon(
                     logs.remove(0);
                 }
             }
-            
+
             idx += 1;
             sleep(Duration::from_millis(500)).await;
         }
     });
 
-    Ok(format!("Connected to serial port {} at {} baud", port, baud_rate))
+    Ok(format!(
+        "Connected to serial port {} at {} baud",
+        port, baud_rate
+    ))
 }
 
 #[tauri::command]
-pub async fn connect_mqtt_daemon(
-    broker: String,
-    client_id: String,
-) -> Result<String, String> {
+pub async fn connect_mqtt_daemon(broker: String, client_id: String) -> Result<String, String> {
     let mut connected = is_mqtt_connected().lock().unwrap();
     if *connected {
         return Ok(format!("MQTT connection active on {}", broker));
@@ -120,21 +117,21 @@ pub async fn connect_mqtt_daemon(
         }
     });
 
-    Ok(format!("MQTT broker connected: {} for client {}", broker, client_id))
+    Ok(format!(
+        "MQTT broker connected: {} for client {}",
+        broker, client_id
+    ))
 }
 
 #[tauri::command]
-pub fn publish_mqtt_message_daemon(
-    topic: String,
-    message: String,
-) -> Result<String, String> {
+pub fn publish_mqtt_message_daemon(topic: String, message: String) -> Result<String, String> {
     let log_msg = format!(
         "[{}] [MQTT] [OUTBOUND] Publish to '{}': {}",
         chrono::Utc::now().to_rfc3339(),
         topic,
         message
     );
-    
+
     let mut logs = mqtt_logs().lock().unwrap();
     logs.push(log_msg);
     Ok("Published successfully".to_string())
@@ -144,7 +141,7 @@ pub fn publish_mqtt_message_daemon(
 pub fn get_hardware_logs() -> Result<HardwareLogsResponse, String> {
     let serial = serial_logs().lock().unwrap().clone();
     let mqtt = mqtt_logs().lock().unwrap().clone();
-    
+
     Ok(HardwareLogsResponse { serial, mqtt })
 }
 

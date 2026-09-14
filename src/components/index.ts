@@ -36,3 +36,4 @@ export * from './orchestration/HitlInterruptModal';
 export * from './orchestration/CognitiveWorkspacePanel';
 export * from './orchestration/ForgeToolSynthesizer';
 export * from './orchestration/ClaudeParityBridge';
+export * from './orchestration/CortexCognitiveGraph';

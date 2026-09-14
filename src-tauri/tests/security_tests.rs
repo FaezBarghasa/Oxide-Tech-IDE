@@ -14,11 +14,10 @@ mod security_tests {
         let executor = SandboxExecutor::new(agent_id, cgroup_manager);
 
         // Attempt to read /etc/shadow
-        let result = executor.execute(
-            &["cat", "/etc/shadow"],
-            &[],
-            &PathBuf::from("/tmp"),
-        ).await.unwrap();
+        let result = executor
+            .execute(&["cat", "/etc/shadow"], &[], &PathBuf::from("/tmp"))
+            .await
+            .unwrap();
 
         // Should fail with permission denied
         assert_ne!(result.exit_code, 0);
@@ -37,11 +36,14 @@ mod security_tests {
         let executor = SandboxExecutor::new(agent_id, cgroup_manager);
 
         // Attempt to access external network
-        let result = executor.execute(
-            &["curl", "-s", "https://example.com"],
-            &[],
-            &PathBuf::from("/tmp"),
-        ).await.unwrap();
+        let result = executor
+            .execute(
+                &["curl", "-s", "https://example.com"],
+                &[],
+                &PathBuf::from("/tmp"),
+            )
+            .await
+            .unwrap();
 
         // Should fail (network disabled by default)
         assert_ne!(result.exit_code, 0);
@@ -59,7 +61,7 @@ mod security_tests {
             memory_limit_bytes: 100_000_000,
             cpu_quota_us: 50_000,
             cpu_period_us: 100_000,
-            pids_limit: 10,  // Limit to 10 processes
+            pids_limit: 10, // Limit to 10 processes
         };
 
         let cgroup_manager = CgroupManager::new(agent_id).unwrap();
@@ -68,11 +70,14 @@ mod security_tests {
         let executor = SandboxExecutor::new(agent_id, cgroup_manager);
 
         // Attempt fork bomb
-        let result = executor.execute(
-            &["bash", "-c", "while true; do bash & done"],
-            &[],
-            &PathBuf::from("/tmp"),
-        ).await.unwrap();
+        let result = executor
+            .execute(
+                &["bash", "-c", "while true; do bash & done"],
+                &[],
+                &PathBuf::from("/tmp"),
+            )
+            .await
+            .unwrap();
 
         // Should be killed by cgroup limit
         assert_ne!(result.exit_code, 0);

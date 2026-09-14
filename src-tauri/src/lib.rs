@@ -1,12 +1,12 @@
 pub mod handlers {
     pub mod core_ops;
     pub mod file_ops;
-    pub mod process;
-    pub mod system;
-    pub mod rag;
     pub mod git_async;
     pub mod hardware_daemon;
     pub mod http_proxy;
+    pub mod process;
+    pub mod rag;
+    pub mod system;
 }
 pub mod utils;
 
@@ -35,6 +35,9 @@ pub fn run() {
             handlers::core_ops::execute_ox_write,
             handlers::core_ops::execute_ox_grep,
             handlers::core_ops::execute_ox_bash,
+            handlers::core_ops::get_cortex_device_capabilities,
+            handlers::core_ops::generate_cortex_embedding,
+            handlers::core_ops::search_cortex_knowledge_graph,
             handlers::file_ops::read_workspace_file,
             handlers::file_ops::save_workspace_file,
             handlers::file_ops::list_directory_tree,

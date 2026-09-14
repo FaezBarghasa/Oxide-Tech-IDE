@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod integration_tests {
-    use core::{SwarmDag, TaskNode, AgentType, WaveScheduler, SandboxExecutor, SandboxCleanup};
-    use uuid::Uuid;
+    use core::{AgentType, SandboxCleanup, SandboxExecutor, SwarmDag, TaskNode, WaveScheduler};
     use std::path::PathBuf;
+    use uuid::Uuid;
 
     #[tokio::test]
     async fn test_full_swarm_execution() {
@@ -12,7 +12,11 @@ mod integration_tests {
         let task_a = TaskNode::new("Task A".to_string(), AgentType::Backend, vec![]);
         let task_b = TaskNode::new("Task B".to_string(), AgentType::Backend, vec![task_a.id]);
         let task_c = TaskNode::new("Task C".to_string(), AgentType::Backend, vec![task_a.id]);
-        let task_d = TaskNode::new("Task D".to_string(), AgentType::Backend, vec![task_b.id, task_c.id]);
+        let task_d = TaskNode::new(
+            "Task D".to_string(),
+            AgentType::Backend,
+            vec![task_b.id, task_c.id],
+        );
 
         dag.add_task(task_a.clone());
         dag.add_task(task_b.clone());
@@ -41,10 +45,9 @@ mod integration_tests {
 
     #[tokio::test]
     async fn test_sandbox_isolation() {
-        let result = SandboxExecutor::execute(
-            &["echo", "hello"],
-            &[],
-        ).await.unwrap();
+        let result = SandboxExecutor::execute(&["echo", "hello"], &[])
+            .await
+            .unwrap();
 
         assert_eq!(result.exit_code, 0);
         assert!(result.stdout.contains("hello"));

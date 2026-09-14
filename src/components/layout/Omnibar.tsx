@@ -272,6 +272,17 @@ export function Omnibar() {
         setTransientView('claude');
         setActiveOverlay('transient');
       }
+    },
+    {
+      id: 'overlay-cortex',
+      name: 'Open Oxide Cortex Cognitive Graph',
+      command: '> cortex',
+      description: 'Qwen3-Embedding-0.6B HAL, 1024-dim SurrealDB MTREE Vector Index & Device Graph',
+      category: 'tools',
+      action: () => {
+        setTransientView('cortex');
+        setActiveOverlay('transient');
+      }
     }
   ];
 

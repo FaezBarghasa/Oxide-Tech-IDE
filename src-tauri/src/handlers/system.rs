@@ -5,12 +5,12 @@ pub fn get_system_stats() -> Result<serde_json::Value, String> {
     let cpu_cores = std::thread::available_parallelism()
         .map(|n| n.get())
         .unwrap_or(1);
-    
+
     let mut vram = "Unknown".to_string();
     if let Ok(output) = Command::new("nvidia-smi")
         .arg("--query-gpu=memory.free")
         .arg("--format=csv,noheader,nounits")
-        .output() 
+        .output()
     {
         let text = String::from_utf8_lossy(&output.stdout);
         if let Some(line) = text.lines().next() {
@@ -20,7 +20,7 @@ pub fn get_system_stats() -> Result<serde_json::Value, String> {
             }
         }
     }
-    
+
     Ok(serde_json::json!({
         "cpu_cores": cpu_cores,
         "vram_free": vram
@@ -35,6 +35,6 @@ pub fn get_git_status(workspace_path: String) -> Result<String, String> {
         .current_dir(&workspace_path)
         .output()
         .map_err(|e| e.to_string())?;
-    
+
     String::from_utf8(output.stdout).map_err(|e| e.to_string())
 }

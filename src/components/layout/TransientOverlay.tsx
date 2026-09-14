@@ -14,7 +14,8 @@ import { CanvasCodeGraph } from '../studio/CanvasCodeGraph';
 import { TimelineScrubber } from '../orchestration/TimelineScrubber';
 import { ForgeToolSynthesizer } from '../orchestration/ForgeToolSynthesizer';
 import { ClaudeParityBridge } from '../orchestration/ClaudeParityBridge';
-import { Anvil } from 'lucide-react';
+import { CortexCognitiveGraph } from '../orchestration/CortexCognitiveGraph';
+import { Anvil, Zap } from 'lucide-react';
 
 export function TransientOverlay() {
   const { activeOverlay, setActiveOverlay, transientView, setTransientView } = useSettingsStore();
@@ -64,6 +65,8 @@ export function TransientOverlay() {
         return <Anvil className="w-4.5 h-4.5 text-amber-400" />;
       case 'claude':
         return <Puzzle className="w-4.5 h-4.5 text-amber-400" />;
+      case 'cortex':
+        return <Zap className="w-4.5 h-4.5 text-cyan-400" />;
       default:
         return null;
     }
@@ -95,6 +98,8 @@ export function TransientOverlay() {
         return 'The Forge — JIT Rust/Wasm Tool Synthesizer & Lazar Protocol';
       case 'claude':
         return 'Claude Code Native Compatibility Bridge & Oxide Arsenal';
+      case 'cortex':
+        return 'Oxide Cortex — Qwen3-Embedding-0.6B HAL & SurrealDB 1024-dim MTREE';
       default:
         return 'Transient Tool View';
     }
@@ -124,6 +129,8 @@ export function TransientOverlay() {
         return <ForgeToolSynthesizer />;
       case 'claude':
         return <ClaudeParityBridge />;
+      case 'cortex':
+        return <CortexCognitiveGraph />;
       case 'scrubber':
         return (
           <TimelineScrubber

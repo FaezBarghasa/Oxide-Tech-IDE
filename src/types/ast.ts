@@ -173,4 +173,24 @@ export interface OxBashResult {
   compiler_error_count: number;
 }
 
+export type CortexBackend = 'Cuda' | 'Metal' | 'Rocm' | 'Cpu';
+
+export interface DeviceCapabilities {
+  backend: CortexBackend;
+  device_name: string;
+  total_vram_mb: number;
+  supports_fp16: boolean;
+  supports_bf16: boolean;
+  max_batch_size: number;
+  vector_dimension: number;
+}
+
+export interface CortexQueryResult {
+  chunk_id: string;
+  file_path: string;
+  symbol_name?: string;
+  content: string;
+  similarity_score: number;
+}
+
 

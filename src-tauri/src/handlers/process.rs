@@ -9,7 +9,7 @@ pub async fn spawn_cargo_check(workspace_path: String) -> Result<String, String>
         .output()
         .await
         .map_err(|e| e.to_string())?;
-    
+
     String::from_utf8(output.stdout).map_err(|e| e.to_string())
 }
 
@@ -22,12 +22,16 @@ pub async fn spawn_cargo_clippy(workspace_path: String) -> Result<String, String
         .output()
         .await
         .map_err(|e| e.to_string())?;
-    
+
     String::from_utf8(output.stdout).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub async fn execute_terminal_command(shell_type: Option<String>, command: String, workspace_path: String) -> Result<String, String> {
+pub async fn execute_terminal_command(
+    shell_type: Option<String>,
+    command: String,
+    workspace_path: String,
+) -> Result<String, String> {
     let (shell, arg) = match shell_type.as_deref() {
         Some("bash") => ("bash", "-c"),
         Some("powershell") | Some("pwsh") => ("powershell.exe", "-Command"),

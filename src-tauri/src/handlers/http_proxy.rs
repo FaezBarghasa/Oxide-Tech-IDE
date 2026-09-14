@@ -11,10 +11,7 @@ pub async fn proxy_request(
 ) -> Result<String, String> {
     task::spawn_blocking(move || {
         let mut cmd = Command::new("curl");
-        cmd.arg("-s")
-           .arg("-X")
-           .arg(&method)
-           .arg(&url);
+        cmd.arg("-s").arg("-X").arg(&method).arg(&url);
 
         for (k, v) in headers {
             cmd.arg("-H").arg(format!("{}: {}", k, v));
@@ -25,7 +22,7 @@ pub async fn proxy_request(
         }
 
         let output = cmd.output().map_err(|e| e.to_string())?;
-        
+
         if output.status.success() {
             Ok(String::from_utf8_lossy(&output.stdout).into_owned())
         } else {
