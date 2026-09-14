@@ -56,3 +56,35 @@ export interface GhostBranchHypothesis {
   estimatedAccuracy: number;
 }
 
+export interface HarnessEvidence {
+  verifier: 'Format' | 'Check' | 'Lint' | 'Test' | 'Nextest' | 'Custom';
+  command: string;
+  exit_code: number;
+  stdout: string;
+  stderr: string;
+  duration_ms: number;
+  passed: boolean;
+}
+
+export interface LocalSkill {
+  id: string;
+  name: string;
+  version: number;
+  error_patterns: string[];
+  prompt_template: string;
+  verification_command: string;
+  risk_level: string;
+  success_count: number;
+  failure_count: number;
+}
+
+export interface InferenceRequestMetadata {
+  worker_id: string;
+  project_id: string;
+  namespace: string;
+  retention: string;
+  no_train: boolean;
+  no_global_memory: boolean;
+}
+
+
