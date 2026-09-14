@@ -6,7 +6,7 @@ import { useFileSystemStore } from '../../state/fileSystemStore';
 import { tauriCommands } from '../../services/tauri';
 import { MainMenuDropdown } from './menu/MainMenuDropdown';
 
-type ConfigKey = 'run' | 'check' | 'clippy' | 'test' | 'bench';
+type ConfigKey = 'run' | 'check' | 'clippy' | 'test' | 'bench' | 'playwright' | 'slint' | 'embedded' | 'iced';
 
 const CONFIGS: Record<ConfigKey, { label: string; cmd: string }> = {
   run: { label: 'Cargo run', cmd: 'run' },
@@ -14,6 +14,10 @@ const CONFIGS: Record<ConfigKey, { label: string; cmd: string }> = {
   clippy: { label: 'Cargo clippy', cmd: 'clippy' },
   test: { label: 'Cargo test (all)', cmd: 'test' },
   bench: { label: 'Cargo bench', cmd: 'bench' },
+  playwright: { label: 'Playwright: Run All E2E', cmd: 'playwright' },
+  slint: { label: 'Slint: Live Preview', cmd: 'slint' },
+  embedded: { label: 'Embedded: Hardware Sim', cmd: 'embedded' },
+  iced: { label: 'Iced: Run with Inspector', cmd: 'iced' },
 };
 
 export function RustRoverHeader() {

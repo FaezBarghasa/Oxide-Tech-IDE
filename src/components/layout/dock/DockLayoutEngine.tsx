@@ -6,6 +6,10 @@ import { ProjectToolWindow } from '../../tools/ProjectToolWindow';
 import { CargoToolWindow } from '../../tools/CargoToolWindow';
 import { ProblemsToolWindow } from '../../tools/ProblemsToolWindow';
 import { MacroViewerToolWindow } from '../../tools/MacroViewerToolWindow';
+import { PlaywrightToolWindow } from '../../tools/PlaywrightToolWindow';
+import { SlintPreviewToolWindow } from '../../tools/SlintPreviewToolWindow';
+import { EmbeddedSimToolWindow } from '../../tools/EmbeddedSimToolWindow';
+import { IcedInspectorToolWindow } from '../../tools/IcedInspectorToolWindow';
 import { CodeEditor } from '../../editor/CodeEditor';
 import { TerminalPanel } from '../../terminal/TerminalPanel';
 import { GitPanel } from '../../git/GitPanel';
@@ -62,6 +66,27 @@ const defaultLayoutJson: IJsonModel = {
           component: 'structure',
           enableClose: false,
         },
+        {
+          type: 'tab',
+          id: 'slint',
+          name: 'Slint Preview',
+          component: 'slint',
+          enableClose: false,
+        },
+        {
+          type: 'tab',
+          id: 'embedded_sim',
+          name: 'Embedded Sim',
+          component: 'embedded_sim',
+          enableClose: false,
+        },
+        {
+          type: 'tab',
+          id: 'iced_inspector',
+          name: 'Iced Inspector',
+          component: 'iced_inspector',
+          enableClose: false,
+        },
       ],
     },
     {
@@ -88,6 +113,13 @@ const defaultLayoutJson: IJsonModel = {
           id: 'macro',
           name: 'Macro Viewer',
           component: 'macro',
+          enableClose: false,
+        },
+        {
+          type: 'tab',
+          id: 'playwright',
+          name: 'Playwright E2E',
+          component: 'playwright',
           enableClose: false,
         },
         {
@@ -170,6 +202,14 @@ export function DockLayoutEngine() {
         return <ProblemsToolWindow />;
       case 'macro':
         return <MacroViewerToolWindow />;
+      case 'playwright':
+        return <PlaywrightToolWindow />;
+      case 'slint':
+        return <SlintPreviewToolWindow />;
+      case 'embedded_sim':
+        return <EmbeddedSimToolWindow />;
+      case 'iced_inspector':
+        return <IcedInspectorToolWindow />;
       case 'editor':
         return <CodeEditor />;
       case 'terminal':

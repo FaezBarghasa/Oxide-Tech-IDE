@@ -10,6 +10,7 @@ pub mod handlers {
     pub mod settings_storage;
     pub mod system;
     pub mod vcs_ops;
+    pub mod visual_workstation_ops;
 }
 pub mod utils;
 
@@ -78,6 +79,16 @@ pub fn run() {
             handlers::settings_storage::load_ide_layout,
             handlers::settings_storage::save_user_keymap,
             handlers::settings_storage::load_user_keymap,
+            handlers::visual_workstation_ops::playwright_discover_tests,
+            handlers::visual_workstation_ops::playwright_run_test,
+            handlers::visual_workstation_ops::playwright_compare_visual_baselines,
+            handlers::visual_workstation_ops::slint_compile_preview,
+            handlers::visual_workstation_ops::slint_dispatch_canvas_event,
+            handlers::visual_workstation_ops::embedded_sim_get_profiles,
+            handlers::visual_workstation_ops::embedded_sim_render_sample,
+            handlers::visual_workstation_ops::embedded_sim_inject_input,
+            handlers::visual_workstation_ops::iced_fetch_widget_tree,
+            handlers::visual_workstation_ops::iced_trigger_hot_reload,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

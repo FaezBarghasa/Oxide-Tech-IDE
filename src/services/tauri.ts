@@ -55,5 +55,17 @@ export const tauriCommands = {
   disconnectHardwareDaemons: () => invoke<string>('disconnect_hardware_daemons'),
 
   // Built-in Request Proxy
-  proxyRequest: (url: string, method: string, headers: Record<string, string>, body: string): Promise<string> => invoke('proxy_request', { url, method, headers, body })
+  proxyRequest: (url: string, method: string, headers: Record<string, string>, body: string): Promise<string> => invoke('proxy_request', { url, method, headers, body }),
+
+  // Visual Workstation Operations
+  playwrightDiscoverTests: (workspaceRoot: string): Promise<import('../types/visualWorkstation').PlaywrightTestItem[]> => invoke('playwright_discover_tests', { workspaceRoot }),
+  playwrightRunTest: (testId: string, filePath: string): Promise<import('../types/visualWorkstation').PlaywrightTestItem> => invoke('playwright_run_test', { testId, filePath }),
+  playwrightCompareVisualBaselines: (baselinePath: string, currentPath: string): Promise<import('../types/visualWorkstation').PlaywrightVisualDiffResult> => invoke('playwright_compare_visual_baselines', { baselinePath, currentPath }),
+  slintCompilePreview: (slintCode: string, filePath: string): Promise<import('../types/visualWorkstation').SlintComponentDefinition[]> => invoke('slint_compile_preview', { slintCode, filePath }),
+  slintDispatchCanvasEvent: (eventType: string, x: number, y: number, key?: string): Promise<unknown> => invoke('slint_dispatch_canvas_event', { eventType, x, y, key }),
+  embeddedSimGetProfiles: (): Promise<import('../types/visualWorkstation').EmbeddedDisplayProfile[]> => invoke('embedded_sim_get_profiles'),
+  embeddedSimRenderSample: (profileId: string): Promise<import('../types/visualWorkstation').EmbeddedSimMetrics> => invoke('embedded_sim_render_sample', { profileId }),
+  embeddedSimInjectInput: (sessionId: string, inputType: string, payload: unknown): Promise<string> => invoke('embedded_sim_inject_input', { sessionId, inputType, payload }),
+  icedFetchWidgetTree: (cratePath: string): Promise<import('../types/visualWorkstation').IcedWidgetNode> => invoke('iced_fetch_widget_tree', { cratePath }),
+  icedTriggerHotReload: (cratePath: string): Promise<unknown> => invoke('iced_trigger_hot_reload', { cratePath }),
 };
