@@ -12,6 +12,8 @@ import { PreviewContainer } from '../previews/PreviewContainer';
 import { CognitiveWorkspacePanel } from '../orchestration/CognitiveWorkspacePanel';
 import { CanvasCodeGraph } from '../studio/CanvasCodeGraph';
 import { TimelineScrubber } from '../orchestration/TimelineScrubber';
+import { ForgeToolSynthesizer } from '../orchestration/ForgeToolSynthesizer';
+import { Anvil } from 'lucide-react';
 
 export function TransientOverlay() {
   const { activeOverlay, setActiveOverlay, transientView, setTransientView } = useSettingsStore();
@@ -57,6 +59,8 @@ export function TransientOverlay() {
         return <Network className="w-4.5 h-4.5 text-cyan-400" />;
       case 'scrubber':
         return <Play className="w-4.5 h-4.5 text-purple-400" />;
+      case 'forge':
+        return <Anvil className="w-4.5 h-4.5 text-amber-400" />;
       default:
         return null;
     }
@@ -84,6 +88,8 @@ export function TransientOverlay() {
         return '120FPS GPU AST & Code Graph';
       case 'scrubber':
         return 'Parallel Ghost Sandbox Timeline Scrubber';
+      case 'forge':
+        return 'The Forge — JIT Rust/Wasm Tool Synthesizer & Lazar Protocol';
       default:
         return 'Transient Tool View';
     }
@@ -109,6 +115,8 @@ export function TransientOverlay() {
         return <CognitiveWorkspacePanel />;
       case 'graph':
         return <CanvasCodeGraph />;
+      case 'forge':
+        return <ForgeToolSynthesizer />;
       case 'scrubber':
         return (
           <TimelineScrubber

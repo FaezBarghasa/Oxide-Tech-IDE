@@ -87,4 +87,41 @@ export interface InferenceRequestMetadata {
   no_global_memory: boolean;
 }
 
+export interface ToolManifest {
+  name: string;
+  description: string;
+  version: string;
+  input_schema: Record<string, unknown>;
+  output_schema?: Record<string, unknown>;
+  usage_count: number;
+  deprecated: boolean;
+}
+
+export interface ForgedToolSummary {
+  name: string;
+  path: string;
+  manifest: ToolManifest;
+  wasm_exists: boolean;
+  documentation_exists: boolean;
+}
+
+export interface ForgeSynthesisRequest {
+  tool_name: string;
+  description: string;
+  input_schema: Record<string, unknown>;
+  cargo_toml: string;
+  lib_rs: string;
+  integration_test_rs: string;
+}
+
+export interface ForgeSynthesisResult {
+  tool_name: string;
+  success: boolean;
+  attempts: number;
+  output_wasm_path?: string;
+  compiler_diagnostics: string[];
+  test_diagnostics: string[];
+  logs: string[];
+}
+
 

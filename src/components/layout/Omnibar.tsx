@@ -250,6 +250,17 @@ export function Omnibar() {
         setTransientView('previews');
         setActiveOverlay('transient');
       }
+    },
+    {
+      id: 'overlay-forge',
+      name: 'Open The Forge (JIT Tool Synthesis)',
+      command: '> forge',
+      description: 'Self-evolving Rust/Wasm tool synthesizer & Lazar protocol layout',
+      category: 'tools',
+      action: () => {
+        setTransientView('forge');
+        setActiveOverlay('transient');
+      }
     }
   ];
 

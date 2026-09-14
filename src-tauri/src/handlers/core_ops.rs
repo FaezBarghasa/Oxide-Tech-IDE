@@ -78,4 +78,28 @@ pub fn sanitize_prompt_for_remote(prompt: String, worker_id: String, project_id:
     (sanitized, meta)
 }
 
+#[tauri::command]
+pub fn discover_forged_tools(workspace_path: String) -> Result<Vec<oxide_core::ForgedToolSummary>, String> {
+    let engine = oxide_core::ForgeEngine::new(PathBuf::from(workspace_path));
+    engine.discover_tools().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn synthesize_forged_tool(workspace_path: String, req: oxide_core::ForgeSynthesisRequest) -> Result<oxide_core::ForgeSynthesisResult, String> {
+    let engine = oxide_core::ForgeEngine::new(PathBuf::from(workspace_path));
+    engine.synthesize_tool(&req).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn record_forged_tool_usage(workspace_path: String, tool_name: String) -> Result<u64, String> {
+    let engine = oxide_core::ForgeEngine::new(PathBuf::from(workspace_path));
+    engine.record_tool_usage(&tool_name).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn deprecate_forged_tool(workspace_path: String, tool_name: String) -> Result<(), String> {
+    let engine = oxide_core::ForgeEngine::new(PathBuf::from(workspace_path));
+    engine.deprecate_tool(&tool_name).map_err(|e| e.to_string())
+}
+
 

@@ -34,4 +34,4 @@ export * from './orchestration/TimelineScrubber';
 export * from './orchestration/ReActDagVisualizer';
 export * from './orchestration/HitlInterruptModal';
 export * from './orchestration/CognitiveWorkspacePanel';
-
+export * from './orchestration/ForgeToolSynthesizer';
