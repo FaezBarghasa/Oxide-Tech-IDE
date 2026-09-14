@@ -13,6 +13,7 @@ import { CognitiveWorkspacePanel } from '../orchestration/CognitiveWorkspacePane
 import { CanvasCodeGraph } from '../studio/CanvasCodeGraph';
 import { TimelineScrubber } from '../orchestration/TimelineScrubber';
 import { ForgeToolSynthesizer } from '../orchestration/ForgeToolSynthesizer';
+import { ClaudeParityBridge } from '../orchestration/ClaudeParityBridge';
 import { Anvil } from 'lucide-react';
 
 export function TransientOverlay() {
@@ -61,6 +62,8 @@ export function TransientOverlay() {
         return <Play className="w-4.5 h-4.5 text-purple-400" />;
       case 'forge':
         return <Anvil className="w-4.5 h-4.5 text-amber-400" />;
+      case 'claude':
+        return <Puzzle className="w-4.5 h-4.5 text-amber-400" />;
       default:
         return null;
     }
@@ -90,6 +93,8 @@ export function TransientOverlay() {
         return 'Parallel Ghost Sandbox Timeline Scrubber';
       case 'forge':
         return 'The Forge — JIT Rust/Wasm Tool Synthesizer & Lazar Protocol';
+      case 'claude':
+        return 'Claude Code Native Compatibility Bridge & Oxide Arsenal';
       default:
         return 'Transient Tool View';
     }
@@ -117,6 +122,8 @@ export function TransientOverlay() {
         return <CanvasCodeGraph />;
       case 'forge':
         return <ForgeToolSynthesizer />;
+      case 'claude':
+        return <ClaudeParityBridge />;
       case 'scrubber':
         return (
           <TimelineScrubber

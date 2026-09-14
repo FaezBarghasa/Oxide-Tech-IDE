@@ -124,4 +124,53 @@ export interface ForgeSynthesisResult {
   logs: string[];
 }
 
+export interface ClaudeConvention {
+  category: string;
+  rule: string;
+  context_pattern?: string;
+}
+
+export interface ClaudeSlashCommand {
+  name: string;
+  description: string;
+  prompt_template: string;
+  source_path: string;
+}
+
+export interface OxReadResult {
+  file_path: string;
+  content: string;
+  line_count: number;
+  ast_symbols: string[];
+}
+
+export interface OxEditResult {
+  file_path: string;
+  occurrences_replaced: number;
+  diff_preview: string;
+  graph_invalidated: boolean;
+}
+
+export interface OxGrepMatch {
+  file_path: string;
+  line_number: number;
+  line_content: string;
+  symbol_context?: string;
+}
+
+export interface OxGrepResult {
+  pattern: string;
+  matches: OxGrepMatch[];
+  total_matches: number;
+}
+
+export interface OxBashResult {
+  command: string;
+  exit_code: number;
+  stdout: string;
+  stderr: string;
+  duration_ms: number;
+  compiler_error_count: number;
+}
+
 

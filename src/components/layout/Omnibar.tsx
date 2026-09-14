@@ -261,6 +261,17 @@ export function Omnibar() {
         setTransientView('forge');
         setActiveOverlay('transient');
       }
+    },
+    {
+      id: 'overlay-claude',
+      name: 'Open Claude Code Parity Bridge',
+      command: '> claude',
+      description: 'Structured CLAUDE.md memory, .mcp.json, & Oxide Arsenal (ox_read/edit/grep/bash)',
+      category: 'tools',
+      action: () => {
+        setTransientView('claude');
+        setActiveOverlay('transient');
+      }
     }
   ];
 

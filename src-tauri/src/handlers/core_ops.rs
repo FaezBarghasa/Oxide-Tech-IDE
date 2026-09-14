@@ -102,4 +102,46 @@ pub fn deprecate_forged_tool(workspace_path: String, tool_name: String) -> Resul
     engine.deprecate_tool(&tool_name).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+pub fn parse_claude_conventions(workspace_path: String) -> Result<Vec<oxide_core::ClaudeConvention>, String> {
+    let bridge = oxide_core::ClaudeBridge::new(PathBuf::from(workspace_path));
+    bridge.parse_claude_md_files().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn discover_claude_slash_commands(workspace_path: String) -> Result<Vec<oxide_core::ClaudeSlashCommand>, String> {
+    let bridge = oxide_core::ClaudeBridge::new(PathBuf::from(workspace_path));
+    bridge.discover_claude_commands().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn execute_ox_read(workspace_path: String, file_path: String, offset: Option<usize>, limit: Option<usize>) -> Result<oxide_core::OxReadResult, String> {
+    let arsenal = oxide_core::ClaudeArsenal::new(PathBuf::from(workspace_path));
+    arsenal.ox_read(&file_path, offset, limit).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn execute_ox_edit(workspace_path: String, file_path: String, old_str: String, new_str: String) -> Result<oxide_core::OxEditResult, String> {
+    let arsenal = oxide_core::ClaudeArsenal::new(PathBuf::from(workspace_path));
+    arsenal.ox_edit(&file_path, &old_str, &new_str).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn execute_ox_write(workspace_path: String, file_path: String, content: String) -> Result<(), String> {
+    let arsenal = oxide_core::ClaudeArsenal::new(PathBuf::from(workspace_path));
+    arsenal.ox_write(&file_path, &content).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn execute_ox_grep(workspace_path: String, pattern: String, ext_filter: Option<String>) -> Result<oxide_core::OxGrepResult, String> {
+    let arsenal = oxide_core::ClaudeArsenal::new(PathBuf::from(workspace_path));
+    arsenal.ox_grep(&pattern, ext_filter.as_deref()).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn execute_ox_bash(workspace_path: String, command: String) -> Result<oxide_core::OxBashResult, String> {
+    let arsenal = oxide_core::ClaudeArsenal::new(PathBuf::from(workspace_path));
+    arsenal.ox_bash(&command).map_err(|e| e.to_string())
+}
+
 

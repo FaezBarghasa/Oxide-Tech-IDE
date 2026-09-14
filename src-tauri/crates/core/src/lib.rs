@@ -1,4 +1,6 @@
 pub mod approvals;
+pub mod claude_arsenal;
+pub mod claude_bridge;
 pub mod context_compiler;
 pub mod cuda_discovery;
 pub mod dag;
@@ -18,6 +20,8 @@ pub mod telemetry;
 pub mod worktree_manager;
 
 pub use approvals::{MergeDecision, SwarmCritic, TaskState, Workflow};
+pub use claude_arsenal::{ClaudeArsenal, OxBashResult, OxEditResult, OxGrepMatch, OxGrepResult, OxReadResult};
+pub use claude_bridge::{ClaudeBridge, ClaudeConvention, ClaudeMcpConfig, ClaudeSlashCommand, McpServerConfig};
 pub use context_compiler::{SlicedContext, SymbolChunk, TokenixEngine};
 pub use cuda_discovery::{discover_cuda, CudaDeviceDetails, CudaDiscoveryResult};
 pub use dag::{AgentType, SwarmDag, TaskNode, TaskStatus, WaveScheduler};
