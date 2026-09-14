@@ -2,9 +2,11 @@ pub mod handlers {
     pub mod cargo_ops;
     pub mod core_ops;
     pub mod file_ops;
+    pub mod fs_watcher;
     pub mod git_async;
     pub mod hardware_daemon;
     pub mod http_proxy;
+    pub mod local_history_ops;
     pub mod lsp_daemon;
     pub mod mcu_debugger_ops;
     pub mod process;
@@ -12,6 +14,7 @@ pub mod handlers {
     pub mod rag;
     pub mod settings_storage;
     pub mod system;
+    pub mod test_runner_ops;
     pub mod vcs_ops;
     pub mod visual_workstation_ops;
 }
@@ -113,6 +116,13 @@ pub fn run() {
             handlers::lsp_daemon::lsp_inlay_hints,
             handlers::lsp_daemon::lsp_code_actions,
             handlers::lsp_daemon::lsp_status,
+            handlers::fs_watcher::fs_watch_start,
+            handlers::fs_watcher::fs_watch_stop,
+            handlers::local_history_ops::local_history_record_snapshot,
+            handlers::local_history_ops::local_history_get_revisions,
+            handlers::local_history_ops::local_history_get_revision_content,
+            handlers::test_runner_ops::discover_workspace_tests,
+            handlers::test_runner_ops::run_single_test,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

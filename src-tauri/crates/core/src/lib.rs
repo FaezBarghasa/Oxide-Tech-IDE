@@ -8,6 +8,7 @@ pub mod dag;
 pub mod errors;
 pub mod forge_engine;
 pub mod harness_engine;
+pub mod local_history;
 pub mod local_memory;
 pub mod loop_engine;
 pub mod plain_text_processor;
@@ -19,6 +20,8 @@ pub mod security_broker;
 pub mod skills_engine;
 pub mod telemetry;
 pub mod worktree_manager;
+
+pub use local_history::{LocalHistoryEngine, LocalHistoryRevision};
 
 pub use approvals::{MergeDecision, SwarmCritic, TaskState, Workflow};
 pub use claude_arsenal::{

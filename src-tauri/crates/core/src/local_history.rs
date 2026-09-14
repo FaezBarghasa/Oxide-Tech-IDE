@@ -59,7 +59,7 @@ impl LocalHistoryEngine {
             .lock()
             .map_err(|_| OxideError::ExecutionError {
                 code: -1,
-                message: "Local history lock poisoned".to_string(),
+                stderr: "Local history lock poisoned".to_string(),
             })?;
 
         let list = rev_map.entry(file_path.to_string()).or_default();
