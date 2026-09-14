@@ -1,6 +1,7 @@
 pub mod approvals;
 pub mod claude_arsenal;
 pub mod claude_bridge;
+pub mod compiler_guard;
 pub mod context_compiler;
 pub mod cortex_engine;
 pub mod cuda_discovery;
@@ -21,6 +22,7 @@ pub mod skills_engine;
 pub mod telemetry;
 pub mod worktree_manager;
 
+pub use compiler_guard::{CompilerGuard, HealingActionType, HealingSuggestion};
 pub use local_history::{LocalHistoryEngine, LocalHistoryRevision};
 
 pub use approvals::{MergeDecision, SwarmCritic, TaskState, Workflow};
