@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
-  Boxes, RefreshCw, Layout, Eye, ChevronRight, ChevronDown, 
-  Play, Box, Sliders
+  Boxes, RefreshCw, Layout, ChevronRight, ChevronDown, 
+  Box
 } from 'lucide-react';
 import { tauriCommands } from '../../services/tauri';
 import { IcedWidgetNode } from '../../types/visualWorkstation';

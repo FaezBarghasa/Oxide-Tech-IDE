@@ -1,19 +1,19 @@
-# Oxide Tech IDE 🦀⚡
+# Oxide Tech IDE 🦀⚡ — Full-Stack Visual Engineering Workstation
 
-**Oxide Tech IDE** is an ultra-fast, professional Rust integrated development environment built with **Tauri v2 + React 19 + Rust**, engineered to achieve **1:1 feature and UX parity with JetBrains RustRover (2026.2.2)**.
-
-Featuring a full multi-split docking engine, virtualized file trees, native Cargo workspace analysis, live macro expansion stepper, Monaco RustRover dark theme with inlay hints, git gutter diffs, global Search Everywhere, and a multi-provider Bring-Your-Own-Key (BYOK) AI Copilot.
+**Oxide Tech IDE** is a high-performance, developer-first integrated development environment built with **Tauri v2 + React 19 + Rust**, engineered to achieve **1:1 feature and UX parity with JetBrains RustRover (2026.2.2)** while functioning as a **Full-Stack Visual Engineering Workstation** with native **Playwright**, **Slint**, **Embedded Graphics**, and **Iced** tools.
 
 ---
 
 ## 📸 Screenshots & UI Showcase
 
-### 1. Main RustRover Spatial Architecture & Docking Shell
-![RustRover Main IDE Layout](docs/assets/rustrover_main_ide.png)
+### 1. Full-Stack Visual Workstation & Spatial Docking
+![Visual Workstation Layout](docs/assets/rustrover_visual_workstation.png)
 
-* **Top Navigation Bar**: Complete JetBrains New UI top menu hierarchy (`File`, `Edit`, `View`, `Navigate`, `Code`, `Refactor`, `Build`, `Run`, `Tools`, `VCS`, `Help`), Cargo configuration runner widget (`Cargo run`, `Cargo check`, `Cargo clippy`, `Cargo test`, `Cargo bench`), Play (`Shift+F10`), Debug (`Shift+F9`), Stop (`Ctrl+F2`), and Search Everywhere (`Shift+Shift`).
-* **Multi-Split Dock Layout**: Powered by `flexlayout-react` with Left, Right, and Bottom tool stripes, customizable docking splits, and layout serialization to `~/.oxide/layout.json`.
-* **Status Bar**: Real-time Git branch selector (`main`), linter status indicator (`Clean`), indentation style, UTF-8 encoding, LF line endings, and live memory usage gauge with GC trigger.
+* **Top Navigation Bar**: JetBrains New UI top menu hierarchy (`File`, `Edit`, `View`, `Navigate`, `Code`, `Refactor`, `Build`, `Run`, `Tools`, `VCS`, `Help`), unified Run Configuration widget (`Cargo run`, `Cargo check`, `Cargo clippy`, `Cargo test`, `Cargo bench`, `Playwright: Run All E2E`, `Slint: Live Preview`, `Embedded: Hardware Sim`, `Iced: Run with Inspector`), Play (`Shift+F10`), Debug (`Shift+F9`), Stop (`Ctrl+F2`), and Search Everywhere (`Shift+Shift`).
+* **Left Tool Stripe**: `Project` file tree and `Cargo` workspace manager.
+* **Right Tool Stripe**: `AI Assistant`, `Structure`, `Slint Preview`, `Embedded Sim`, and `Iced Inspector`.
+* **Bottom Tool Stripe**: `Terminal`, `Problems` (diagnostics), `Macro Viewer` (live syn expansion), `Playwright E2E`, and `Git` VCS panels.
+* **Status Bar**: Real-time Git branch selector (`main`), linter status indicator (`Clean`), indentation style, UTF-8 encoding, LF line endings, and live memory profiling gauge.
 
 ---
 
@@ -32,24 +32,27 @@ Featuring a full multi-split docking engine, virtualized file trees, native Carg
 
 ---
 
-## 🌟 Key Architecture & Features
+## 🌟 Visual Workstation Subsystems
 
-### 🚀 1. Docking & Tool Window System
-* **`Project` Window**: Virtualized file tree powered by `@tanstack/react-virtual` for buttery smooth performance on massive codebases. Features inline **Speed Search** (`Ctrl+F`) and exact JetBrains Darcula Git status colors.
-* **`Cargo` Workspace Window**: Interactive package and target hierarchy (`[[bin]]`, `[lib]`, `[[example]]`, `[[test]]`), right-click target runner, quick tasks palette, and `cargo add` modal.
-* **`Problems` Window**: Live compiler diagnostics categorized by crate, file, and severity (`Error`, `Warning`, `Info`) with diagnostic code tags (`E0382`, `clippy::needless_borrow`) and double-click editor navigation.
-* **`Macro Expansion` Viewer**: Split-screen live `syn`/`quote` AST token stepper to debug and inspect procedural and declarative macros.
+### 🎭 1. Playwright Web & E2E Testing
+* **Test Explorer**: Discovers and runs tests across `.spec.ts` and `.test.ts` files with instant status indicators.
+* **Gutter Test Runners**: Green play icons next to test blocks for one-click background execution.
+* **Visual Regression Engine**: Pixel-by-pixel diff comparisons against gold standard baselines with automated mismatch highlighting.
 
-### 🎨 2. Editor & Monaco Inlay Hints
-* **`rustrover-dark` Theme**: High-fidelity JetBrains Darcula syntax color palette.
-* **Monaco Inlay Hints**: Real-time type annotations on `let` bindings (`: Type`), parameter name hints on function calls, and chained method call return types.
-* **Left Gutter Layering**: Git VCS modification bars (Green added, Blue modified, Red deleted), click-to-toggle breakpoints (`Shift+F8`), and play glyphs (▶) on `fn main()` and `#[test]` functions.
-* **Context Actions (`Alt+Enter`)**: Quick fixes, missing import insertion, and Clippy recommendations.
+### 🎨 2. Slint Declarative Live Preview
+* **Interactive `<canvas>`**: High-DPI software rendering pipeline parsing `.slint` markup and drawing live components.
+* **Bi-Directional Pointer Bridge**: Click and drag events are forwarded directly to the Slint interpreter state.
+* **Property Inspector**: Live controls to inspect and tweak Slint component properties in real-time.
 
-### 🤖 3. Multi-Provider AI Copilot (BYOK)
-* **Universal Model Routing**: Connect seamlessly to Google Gemini, OpenAI, Anthropic Claude, or local Ollama/Llama3 models.
-* **Non-Blocking Execution**: Asynchronous Tokio tasks handle background cognitive reasoning without freezing the UI thread.
-* **Compiler Self-Healing Guard**: Intercepts compiler diagnostics to suggest and apply surgical one-click fixes.
+### 📟 3. Embedded Graphics Display Simulator
+* **Hardware Display Profiles**: `SSD1306 (128x64 Mono OLED)`, `ST7789 (240x240 RGB565 IPS)`, `ILI9341 (320x240 RGB565 TFT)`, and `Waveshare 2.9" Tri-Color e-Ink`.
+* **Pixel Grid Zoom**: Infinite magnification (up to 600%) to inspect pixel placement and font kerning.
+* **Hardware Controls & Metrics**: D-Pad hardware button injection, live FPS counters, frame time (ms), and VRAM consumption tracking.
+
+### 🧊 4. Iced Native GUI Inspector & Hot Reload
+* **Widget Hierarchy Tree**: Live inspection of `Application` -> `Column` -> `Row` -> `Container` -> `Button` -> `Text`.
+* **Computed Layout Box Model**: Visualizes bounding boxes, padding, and spacing constraints.
+* **Sub-500ms Hot Reload**: Recompiles and re-renders application state without window flicker.
 
 ---
 
@@ -57,7 +60,7 @@ Featuring a full multi-split docking engine, virtualized file trees, native Carg
 
 | Component | Technology |
 | :--- | :--- |
-| **Desktop Shell** | Tauri v2 (Rust backend) |
+| **Desktop Shell** | Tauri v2 (Rust native backend) |
 | **Frontend Framework** | React 19 + TypeScript (Strict Mode) |
 | **Styling & Icons** | Tailwind CSS v4 + Lucide Icons |
 | **Docking Engine** | `flexlayout-react` |

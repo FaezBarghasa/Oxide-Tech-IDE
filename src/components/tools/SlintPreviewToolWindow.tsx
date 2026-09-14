@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
-  Play, RotateCcw, ZoomIn, ZoomOut, Sliders, RefreshCw, Layers, 
-  Code, Eye
+  RotateCcw, ZoomIn, ZoomOut
 } from 'lucide-react';
 import { tauriCommands } from '../../services/tauri';
 import { SlintComponentDefinition } from '../../types/visualWorkstation';

@@ -20,7 +20,7 @@ const CONFIGS: Record<ConfigKey, { label: string; cmd: string }> = {
   iced: { label: 'Iced: Run with Inspector', cmd: 'iced' },
 };
 
-export function RustRoverHeader() {
+export function RRHeader() {
   const { setActiveOverlay } = useSettingsStore();
   const { workspaceRoot } = useFileSystemStore();
   const { lastBuildStatus, setBuildStatus, setDiagnostics } = useCompilationStore();
