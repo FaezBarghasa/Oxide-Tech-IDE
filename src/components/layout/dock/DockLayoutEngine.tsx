@@ -12,6 +12,8 @@ import { EmbeddedSimToolWindow } from '../../tools/EmbeddedSimToolWindow';
 import { IcedInspectorToolWindow } from '../../tools/IcedInspectorToolWindow';
 import { DebuggerToolWindow } from '../../tools/DebuggerToolWindow';
 import { MQTTTerminalToolWindow } from '../../tools/MQTTTerminalToolWindow';
+import { LocalHistoryToolWindow } from '../../tools/LocalHistoryToolWindow';
+import { TestExplorerToolWindow } from '../../tools/TestExplorerToolWindow';
 import { CodeEditor } from '../../editor/CodeEditor';
 import { TerminalPanel } from '../../terminal/TerminalPanel';
 import { GitPanel } from '../../git/GitPanel';
@@ -47,6 +49,13 @@ const defaultLayoutJson: IJsonModel = {
           component: 'cargo',
           enableClose: false,
         },
+        {
+          type: 'tab',
+          id: 'test_explorer',
+          name: 'Test Explorer',
+          component: 'test_explorer',
+          enableClose: false,
+        },
       ],
     },
     {
@@ -59,6 +68,13 @@ const defaultLayoutJson: IJsonModel = {
           id: 'ai',
           name: 'AI Assistant',
           component: 'ai',
+          enableClose: false,
+        },
+        {
+          type: 'tab',
+          id: 'local_history',
+          name: 'Local History',
+          component: 'local_history',
           enableClose: false,
         },
         {
@@ -218,6 +234,10 @@ export function DockLayoutEngine() {
         return <ProjectToolWindow />;
       case 'cargo':
         return <CargoToolWindow />;
+      case 'test_explorer':
+        return <TestExplorerToolWindow />;
+      case 'local_history':
+        return <LocalHistoryToolWindow />;
       case 'problems':
         return <ProblemsToolWindow />;
       case 'macro':
@@ -255,3 +275,4 @@ export function DockLayoutEngine() {
     </div>
   );
 }
+

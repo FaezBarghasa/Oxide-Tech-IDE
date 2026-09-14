@@ -110,5 +110,26 @@ export const tauriCommands = {
     invoke('lsp_code_actions', { path, startLine, startCol, endLine, endCol }),
   lspStatus: (): Promise<boolean> =>
     invoke('lsp_status'),
+
+  // Filesystem Watcher Daemon
+  fsWatchStart: (path: string): Promise<boolean> =>
+    invoke('fs_watch_start', { path }),
+  fsWatchStop: (): Promise<boolean> =>
+    invoke('fs_watch_stop'),
+
+  // Local History Revision Engine
+  localHistoryRecordSnapshot: (filePath: string, content: string, triggerTag: string = 'save'): Promise<import('../types/rustrover').LocalHistoryRevision> =>
+    invoke('local_history_record_snapshot', { filePath, content, triggerTag }),
+  localHistoryGetRevisions: (filePath: string): Promise<import('../types/rustrover').LocalHistoryRevision[]> =>
+    invoke('local_history_get_revisions', { filePath }),
+  localHistoryGetRevisionContent: (filePath: string, revisionId: string): Promise<string> =>
+    invoke('local_history_get_revision_content', { filePath, revisionId }),
+
+  // Cargo Test Runner Engine
+  discoverWorkspaceTests: (workspacePath: string): Promise<import('../types/rustrover').WorkspaceTestItem[]> =>
+    invoke('discover_workspace_tests', { workspacePath }),
+  runSingleTest: (workspacePath: string, testId: string): Promise<import('../types/rustrover').TestRunResult> =>
+    invoke('run_single_test', { workspacePath, testId }),
 };
+
 

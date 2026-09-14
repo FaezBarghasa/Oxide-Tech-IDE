@@ -41,3 +41,32 @@ export interface SystemMemoryProfile {
   heap_allocated_bytes: number;
   vram_free_mb?: number;
 }
+
+export interface LocalHistoryRevision {
+  id: string;
+  file_path: string;
+  timestamp: number;
+  trigger_tag: string;
+  content: string;
+  byte_size: number;
+}
+
+export interface WorkspaceTestItem {
+  id: string;
+  name: string;
+  package: string;
+  module_path: string;
+  status: 'idle' | 'running' | 'passed' | 'failed';
+  duration_ms?: number;
+  output?: string;
+}
+
+export interface TestRunResult {
+  test_id: string;
+  passed: boolean;
+  duration_ms: number;
+  stdout: string;
+  stderr: string;
+  failure_message?: string;
+}
+

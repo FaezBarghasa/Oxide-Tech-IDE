@@ -67,6 +67,14 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
       try {
         await tauriCommands.writeFile(currentFile, file.content);
         get().markSaved(currentFile);
+        // Record Local History revision snapshot asynchronously
+        tauriCommands.localHistoryRecordSnapshot(currentFile, file.content, 'manual-save').catch(err => {
+          console.warn('Local History snapshot error:', err);
+        });
+        // Notify LSP server
+        tauriCommands.lspDidSave(currentFile).catch(err => {
+          console.warn('LSP didSave error:', err);
+        });
       } catch (err) {
         console.error('Failed to save file:', err);
       }
