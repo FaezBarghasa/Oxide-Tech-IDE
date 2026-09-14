@@ -12,9 +12,11 @@ pub fn get_system_stats() -> Result<serde_json::Value, String> {
         .arg("--format=csv,noheader,nounits")
         .output() 
     {
-        if let Ok(s) = String::from_utf8(output.stdout) {
-            if let Some(line) = s.lines().next() {
-                vram = format!("{} MB", line.trim());
+        let text = String::from_utf8_lossy(&output.stdout);
+        if let Some(line) = text.lines().next() {
+            let trimmed = line.trim();
+            if !trimmed.is_empty() {
+                vram = format!("{} MB", trimmed);
             }
         }
     }

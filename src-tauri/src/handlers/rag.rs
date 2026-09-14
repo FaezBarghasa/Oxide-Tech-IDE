@@ -17,6 +17,12 @@ pub struct ASTIndexState {
     pub symbols: Mutex<Vec<SymbolInfo>>,
 }
 
+impl Default for ASTIndexState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ASTIndexState {
     pub fn new() -> Self {
         Self {
@@ -38,9 +44,12 @@ fn index_workspace_dir(dir: &Path, files: &mut HashMap<String, String>, symbols:
                 }
             } else if path.is_file() {
                 let ext = path.extension().map(|e| e.to_string_lossy()).unwrap_or_default();
-                if ext == "rs" || ext == "ts" || ext == "tsx" || ext == "json" || ext == "toml" {
-                    if let Ok(content) = fs::read_to_string(&path) {
-                        let path_str = path.to_string_lossy().into_owned();
+                let is_supported = matches!(ext.as_ref(), "rs" | "ts" | "tsx" | "json" | "toml");
+                if !is_supported {
+                    continue;
+                }
+                if let Ok(content) = fs::read_to_string(&path) {
+                    let path_str = path.to_string_lossy().into_owned();
                         
                         // Parse basic signatures
                         for (idx, line) in content.lines().enumerate() {
@@ -81,7 +90,6 @@ fn index_workspace_dir(dir: &Path, files: &mut HashMap<String, String>, symbols:
                         }
                         
                         files.insert(path_str, content);
-                    }
                 }
             }
         }
@@ -179,7 +187,7 @@ pub fn get_predictive_context(
     }
 
     let mut ranked: Vec<(String, usize)> = file_scores.into_iter().collect();
-    ranked.sort_by(|a, b| b.1.cmp(&a.1));
+    ranked.sort_by_key(|b| std::cmp::Reverse(b.1));
 
     let mut results = Vec::new();
     for (path, score) in ranked.into_iter().take(4) {

@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use serde::{Deserialize, Serialize};
 use tokio::fs;
 use async_recursion::async_recursion;
@@ -20,10 +20,8 @@ pub async fn read_workspace_file(path: String) -> Result<String, String> {
 
 #[tauri::command]
 pub async fn save_workspace_file(path: String, content: String) -> Result<(), String> {
-    if let Some(parent) = Path::new(&path).parent() {
-        if !parent.exists() {
-            let _ = fs::create_dir_all(parent).await;
-        }
+    if let Some(parent) = Path::new(&path).parent().filter(|p| !p.exists()) {
+        let _ = fs::create_dir_all(parent).await;
     }
     fs::write(&path, content)
         .await
@@ -44,7 +42,7 @@ pub async fn list_directory_tree(dir_path: String) -> Result<Vec<FileEntry>, Str
             path: path.to_string_lossy().to_string(),
             name: entry.file_name().to_string_lossy().to_string(),
             is_dir,
-            children: if is_dir { None } else { None },
+            children: None,
         });
     }
     Ok(entries)
@@ -70,10 +68,8 @@ async fn read_dir_recursive(path: &Path) -> Result<Vec<FileTreeNode>, String> {
                 .map(|s| s.to_string_lossy().into_owned())
                 .unwrap_or_default();
             
-            if name.starts_with('.') && name != ".git" {
-                if name != ".env" {
-                    continue;
-                }
+            if name.starts_with('.') && name != ".git" && name != ".env" {
+                continue;
             }
             if name == "node_modules" || name == "target" || name == "dist" {
                 continue;
@@ -113,10 +109,8 @@ pub async fn read_file(path: String) -> Result<String, String> {
 
 #[tauri::command]
 pub async fn write_file(path: String, content: String) -> Result<(), String> {
-    if let Some(parent) = Path::new(&path).parent() {
-        if !parent.exists() {
-            fs::create_dir_all(parent).await.map_err(|e| e.to_string())?;
-        }
+    if let Some(parent) = Path::new(&path).parent().filter(|p| !p.exists()) {
+        fs::create_dir_all(parent).await.map_err(|e| e.to_string())?;
     }
     fs::write(&path, content).await.map_err(|e| format!("Failed to write {}: {}", path, e))
 }
@@ -136,10 +130,8 @@ pub async fn create_file(path: String) -> Result<(), String> {
     if p.exists() {
         return Err(format!("File already exists: {}", path));
     }
-    if let Some(parent) = p.parent() {
-        if !parent.exists() {
-            fs::create_dir_all(parent).await.map_err(|e| e.to_string())?;
-        }
+    if let Some(parent) = p.parent().filter(|par| !par.exists()) {
+        fs::create_dir_all(parent).await.map_err(|e| e.to_string())?;
     }
     fs::write(p, "").await.map_err(|e| e.to_string())
 }

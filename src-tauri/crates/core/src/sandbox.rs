@@ -154,7 +154,7 @@ impl SandboxCleanup {
 
     async fn remove_worktree(&self) -> OxideResult<()> {
         let output = tokio::process::Command::new("git")
-            .args(&["worktree", "remove", "--force", &self.worktree_path.to_string_lossy()])
+            .args(["worktree", "remove", "--force", &self.worktree_path.to_string_lossy()])
             .output()
             .await
             .map_err(OxideError::IoError)?;

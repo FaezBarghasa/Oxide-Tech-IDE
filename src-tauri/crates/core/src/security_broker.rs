@@ -7,6 +7,12 @@ pub struct SecretBroker {
     secrets: Arc<RwLock<HashMap<String, String>>>,
 }
 
+impl Default for SecretBroker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SecretBroker {
     pub fn new() -> Self {
         Self {
@@ -27,6 +33,12 @@ impl SecretBroker {
 
 pub struct AskpassBroker {
     broker: SecretBroker,
+}
+
+impl Default for AskpassBroker {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AskpassBroker {
