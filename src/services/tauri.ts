@@ -18,7 +18,7 @@ export const tauriCommands = {
   spawnCargoCheck: (workspacePath: string): Promise<string> => invoke('spawn_cargo_check', { workspacePath }),
   spawnCargoClippy: (workspacePath: string): Promise<string> => invoke('spawn_cargo_clippy', { workspacePath }),
   executeTerminalCommand: (command: string, workspacePath: string, shellType?: string): Promise<string> => invoke('execute_terminal_command', { shellType, command, workspacePath }),
-  getSystemStats: (): Promise<{ cpu_cores: number, vram_free: string }> => invoke('get_system_stats'),
+  getSystemStats: (): Promise<{ cpu_cores: number; vram_free: string; rss_mb?: number }> => invoke('get_system_stats'),
   getGitStatus: (workspacePath: string): Promise<string> => invoke('get_git_status', { workspacePath }),
   
   // Predictive RAG & AST Indexing

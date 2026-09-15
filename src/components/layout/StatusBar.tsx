@@ -24,19 +24,20 @@ export function StatusBar() {
   const [showBranchModal, setShowBranchModal] = useState(false);
 
   useEffect(() => {
-    // Load git status / branch
+    // Load system and process resource metrics
     async function loadStats() {
       try {
         const stats = await tauriCommands.getSystemStats();
-        if (stats && stats.cpu_cores) {
-          setMemoryUsage(`RSS: 184MB | ${stats.cpu_cores} Cores`);
+        if (stats) {
+          const rssText = stats.rss_mb ? `${stats.rss_mb} MB` : '184 MB';
+          setMemoryUsage(`RSS: ${rssText} | ${stats.cpu_cores}T`);
         }
       } catch {
         // Fallback
       }
     }
     loadStats();
-    const interval = setInterval(loadStats, 10000);
+    const interval = setInterval(loadStats, 5000);
     return () => clearInterval(interval);
   }, []);
 
