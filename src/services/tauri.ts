@@ -76,6 +76,9 @@ export const tauriCommands = {
   mcuPollDefmtRtt: (sessionId: string): Promise<import('../types/mcuDebugger').DefmtLogPacket[]> => invoke('mcu_poll_defmt_rtt', { sessionId }),
   mcuLaunchQemu: (config: import('../types/mcuDebugger').QemuSessionConfig): Promise<string[]> => invoke('mcu_launch_qemu', { config }),
   mcuReadPeripheralRegisters: (peripheralName: string): Promise<import('../types/mcuDebugger').PeripheralBlock> => invoke('mcu_read_peripheral_registers', { peripheralName }),
+  runKlippWorkflow: (config: import('../types/mcuDebugger').KlippWorkflowConfig): Promise<import('../types/mcuDebugger').McuFlashResult> => invoke('run_klipp_workflow', { config }),
+  mcpGetServerConfigs: (): Promise<import('../types/mcuDebugger').McpServerEntry[]> => invoke('mcp_get_server_configs'),
+  mcpToggleServer: (serverId: string, enabled: boolean): Promise<boolean> => invoke('mcp_toggle_server', { serverId, enabled }),
 
   // Full-Duplex Interactive PTY Terminal
   ptySpawn: (sessionId: string, shell?: string, cwd?: string, cols?: number, rows?: number): Promise<string> =>

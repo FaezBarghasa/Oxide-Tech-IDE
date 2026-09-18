@@ -4,13 +4,14 @@ import { useSettingsStore } from '../../state/settingsStore';
 import { useCompilationStore } from '../../state/compilationStore';
 import { tauriCommands } from '../../services/tauri';
 
-type ConfigKey = 'check' | 'clippy' | 'run' | 'test';
+type ConfigKey = 'check' | 'clippy' | 'run' | 'test' | 'klipp';
 
 const CONFIGS = {
   check: { label: 'Cargo check', cmd: 'check' },
   clippy: { label: 'Cargo clippy', cmd: 'clippy' },
   run: { label: 'Cargo run', cmd: 'run' },
   test: { label: 'Cargo test', cmd: 'test' },
+  klipp: { label: '⚡ r_klipp Flash & Monitor', cmd: 'klipp' },
 };
 
 export function TopNavigationBar() {
@@ -27,6 +28,17 @@ export function TopNavigationBar() {
         resJSON = await tauriCommands.spawnCargoCheck('.');
       } else if (selectedConfig === 'clippy') {
         resJSON = await tauriCommands.spawnCargoClippy('.');
+      } else if (selectedConfig === 'klipp') {
+        const flashRes = await tauriCommands.runKlippWorkflow({
+          workspace_path: '.',
+          target_chip: 'STM32F401RET6',
+          probe_id: 'probe-0',
+          release: true,
+          features: ['defmt-rtt', 'motion-control'],
+        });
+        setBuildStatus('success');
+        console.log('[r_klipp] Workflow executed:', flashRes);
+        return;
       } else {
         // Run general command
         const out = await tauriCommands.executeTerminalCommand(`cargo ${CONFIGS[selectedConfig].cmd}`, '.');
@@ -57,6 +69,7 @@ export function TopNavigationBar() {
       setBuildStatus('error');
     }
   };
+
 
   return (
     <div className="h-10 border-b border-ide-border bg-ide-bg flex items-center justify-between px-4 select-none shrink-0 text-ide-text text-sm">

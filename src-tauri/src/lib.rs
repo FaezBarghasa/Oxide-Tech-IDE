@@ -101,6 +101,9 @@ pub fn run() {
             handlers::mcu_debugger_ops::mcu_poll_defmt_rtt,
             handlers::mcu_debugger_ops::mcu_launch_qemu,
             handlers::mcu_debugger_ops::mcu_read_peripheral_registers,
+            handlers::mcu_debugger_ops::run_klipp_workflow,
+            handlers::mcu_debugger_ops::mcp_get_server_configs,
+            handlers::mcu_debugger_ops::mcp_toggle_server,
             handlers::pty_ops::pty_spawn,
             handlers::pty_ops::pty_write,
             handlers::pty_ops::pty_resize,
@@ -127,3 +130,4 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+

@@ -64,3 +64,21 @@ export interface McuFlashResult {
   speed_kb_s: number;
   output_logs: string[];
 }
+
+export interface KlippWorkflowConfig {
+  workspace_path: string;
+  target_chip: string;
+  probe_id: string;
+  release: boolean;
+  features: string[];
+}
+
+export interface McpServerEntry {
+  id: string;
+  name: string;
+  status: 'connected' | 'disconnected' | 'error';
+  tools_count: number;
+  transport: 'stdio' | 'sse' | 'websocket';
+  description: string;
+}
+

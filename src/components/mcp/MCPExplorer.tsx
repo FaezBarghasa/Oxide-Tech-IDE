@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Network, Plus, Play, Info, Cpu } from 'lucide-react';
 import { cn } from '../../utils/theme';
+import { tauriCommands } from '../../services/tauri';
+import { McpServerEntry } from '../../types/mcuDebugger';
 
 interface MCPServer {
   id: string;
@@ -13,20 +15,56 @@ interface MCPServer {
 export function MCPExplorer() {
   const [servers, setServers] = useState<MCPServer[]>([
     {
-      id: '1',
-      name: 'Filesystem MCP',
-      command: 'npx @modelcontextprotocol/server-filesystem /path/to/project',
+      id: 'mcp-probe-rs',
+      name: 'Probe-RS Embedded Debugger',
+      command: 'probe-rs dap-server --chip STM32F401RET6',
       status: 'connected',
-      tools: ['read_file', 'write_file', 'list_directory', 'grep_search']
+      tools: ['flash_firmware', 'read_registers', 'poll_rtt', 'reset_halt', 'svd_inspect']
     },
     {
-      id: '2',
-      name: 'PostgreSQL MCP',
-      command: 'npx @modelcontextprotocol/server-postgres postgres://localhost:5432/db',
+      id: 'mcp-cargo-gatekeeper',
+      name: 'Cargo Compiler Guard & Gatekeeper',
+      command: 'cargo clippy --message-format=json',
+      status: 'connected',
+      tools: ['check_diagnostics', 'generate_safe_diff', 'apply_self_heal']
+    },
+    {
+      id: 'mcp-qemu-redox',
+      name: 'QEMU & Redox OS Simulator',
+      command: 'qemu-system-arm -machine lm3s6965evb',
       status: 'disconnected',
-      tools: ['query_db', 'describe_tables', 'list_databases']
+      tools: ['launch_vm', 'attach_gdb_remote', 'inject_irq']
+    },
+    {
+      id: 'mcp-mqtt-broker',
+      name: 'MQTT Embedded Telemetry Bus',
+      command: 'mqtt://localhost:1883/telemetry/#',
+      status: 'connected',
+      tools: ['subscribe_topic', 'publish_command', 'inspect_buffer']
     }
   ]);
+
+  useEffect(() => {
+    tauriCommands.mcpGetServerConfigs()
+      .then((configs: McpServerEntry[]) => {
+        if (configs && configs.length > 0) {
+          setServers(configs.map(c => ({
+            id: c.id,
+            name: c.name,
+            command: `[${c.transport}] ${c.description}`,
+            status: c.status,
+            tools: c.id === 'mcp-probe-rs'
+              ? ['flash_firmware', 'read_registers', 'poll_rtt', 'reset_halt', 'svd_inspect']
+              : c.id === 'mcp-cargo-gatekeeper'
+              ? ['check_diagnostics', 'generate_safe_diff', 'apply_self_heal']
+              : c.id === 'mcp-qemu-redox'
+              ? ['launch_vm', 'attach_gdb_remote', 'inject_irq']
+              : ['subscribe_topic', 'publish_command', 'inspect_buffer']
+          })));
+        }
+      })
+      .catch(err => console.warn('Failed to load MCP server configs from backend:', err));
+  }, []);
 
   const [newServerName, setNewServerName] = useState('');
   const [newServerCmd, setNewServerCmd] = useState('');
@@ -36,6 +74,22 @@ export function MCPExplorer() {
   const [executingTool, setExecutingTool] = useState('');
   const [toolParams, setToolParams] = useState('');
   const [toolLogs, setToolLogs] = useState('');
+
+  const handleToggle = async (id: string, currentStatus: string) => {
+    const nextStatus = currentStatus === 'connected' ? false : true;
+    try {
+      await tauriCommands.mcpToggleServer(id, nextStatus);
+      setServers(prev => prev.map(s => {
+        if (s.id === id) {
+          return { ...s, status: nextStatus ? 'connected' : 'disconnected' };
+        }
+        return s;
+      }));
+    } catch (e) {
+      console.error('Failed to toggle MCP server:', e);
+    }
+  };
+
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,15 +106,6 @@ export function MCPExplorer() {
     setServers(prev => [...prev, server]);
     setNewServerName('');
     setNewServerCmd('');
-  };
-
-  const handleConnect = (id: string) => {
-    setServers(prev => prev.map(s => {
-      if (s.id === id) {
-        return { ...s, status: 'connected' };
-      }
-      return s;
-    }));
   };
 
   const handleSelectServer = (server: MCPServer) => {
@@ -137,21 +182,16 @@ export function MCPExplorer() {
                   <span className="text-xs font-bold text-white">{s.name}</span>
                 </div>
                 <div className="flex items-center space-x-1.5">
-                  <span className={cn(
-                    "text-[8px] font-bold px-1.5 py-0.5 rounded uppercase",
-                    s.status === 'connected' && "bg-green-500/10 text-green-400",
-                    s.status === 'disconnected' && "bg-ide-border text-ide-text/50"
-                  )}>
-                    {s.status}
-                  </span>
-                  {s.status === 'disconnected' && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleConnect(s.id); }}
-                      className="text-[9px] bg-ide-selection hover:bg-ide-activeTab px-1.5 py-0.5 rounded cursor-pointer text-white font-medium"
-                    >
-                      Connect
-                    </button>
-                  )}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleToggle(s.id, s.status); }}
+                    className={cn(
+                      "text-[8px] font-bold px-1.5 py-0.5 rounded uppercase cursor-pointer transition-colors",
+                      s.status === 'connected' && "bg-green-500/10 text-green-400 hover:bg-green-500/20",
+                      s.status === 'disconnected' && "bg-ide-border text-ide-text/50 hover:bg-ide-selection hover:text-white"
+                    )}
+                  >
+                    {s.status === 'connected' ? 'Connected' : 'Connect'}
+                  </button>
                 </div>
               </div>
               <code className="text-[10px] font-mono bg-ide-bg/60 p-1 rounded text-ide-function select-all border border-ide-border/20 truncate">
@@ -160,6 +200,7 @@ export function MCPExplorer() {
             </div>
           ))}
         </div>
+
 
         {/* Tools Viewer */}
         {selectedServerId && (
