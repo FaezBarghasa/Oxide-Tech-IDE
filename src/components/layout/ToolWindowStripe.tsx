@@ -2,7 +2,8 @@ import { cn } from '../../utils/theme';
 import { useLayoutState, ToolWindowPosition, ToolWindowId } from './useLayoutState';
 import { 
   Files, Search, GitBranch, Bot, Wrench, Network, 
-  Layout, Globe, Radio, Terminal, Bug, Activity, Cpu 
+  Layout, Globe, Radio, Terminal, Bug, Activity, Cpu,
+  Box, PlaySquare, AlertCircle, History, Code, Monitor, Eye, Video
 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -12,20 +13,29 @@ interface ToolWindowStripeProps {
 
 const ICONS: Record<ToolWindowId, any> = {
   project: Files,
-  search: Search,
+  cargo: Box,
+  test: PlaySquare,
   git: GitBranch,
+  search: Search,
   ai: Bot,
-  skills: Wrench,
   mcp: Network,
+  ast: Activity,
+  macro_viewer: Code,
+  local_history: History,
+  slint_preview: Eye,
   previews: Layout,
-  rest: Globe,
-  mqtt: Radio,
-  serial: Terminal,
+  skills: Wrench,
   terminal: Terminal,
   debug: Bug,
-  ast: Activity,
+  problems: AlertCircle,
+  embedded_sim: Monitor,
+  playwright: Video,
+  mqtt: Radio,
+  serial: Terminal,
+  rest: Globe,
   neural: Cpu
 };
+
 
 export function ToolWindowStripe({ position }: ToolWindowStripeProps) {
   const { windows, toggleToolWindow, activeLeftWindow, activeRightWindow, activeBottomWindow } = useLayoutState(useShallow(state => ({
