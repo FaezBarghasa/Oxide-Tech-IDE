@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { tauriCommands } from '../../services/tauri';
-import { CargoWorkspaceMetadata, CargoCrateInfo } from '../../types/rustrover';
+import { CargoWorkspaceMetadata, CargoCrateInfo } from '../../types/oxide';
 import { useFileSystemStore } from '../../state/fileSystemStore';
 import { useCompilationStore } from '../../state/compilationStore';
 import {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { History, RotateCcw, Clock, FileCode, Eye } from 'lucide-react';
 import { useEditorStore } from '../../state/editorStore';
 import { tauriCommands } from '../../services/tauri';
-import { LocalHistoryRevision } from '../../types/rustrover';
+import { LocalHistoryRevision } from '../../types/oxide';
 
 export function LocalHistoryToolWindow() {
   const currentFile = useEditorStore((s) => s.currentFile);

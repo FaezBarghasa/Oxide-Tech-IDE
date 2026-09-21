@@ -8,7 +8,7 @@ interface ClaudeParityBridgeProps {
 }
 
 export const ClaudeParityBridge: React.FC<ClaudeParityBridgeProps> = ({
-  workspacePath = '/home/jrad/RustroverProjects/Oxide-Tech-IDE'
+  workspacePath = '.'
 }) => {
   const [activeTab, setActiveTab] = useState<'conventions' | 'commands' | 'arsenal'>('conventions');
   const [conventions, setConventions] = useState<ClaudeConvention[]>([]);

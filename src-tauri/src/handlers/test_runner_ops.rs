@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::path::Path;
+use tauri::{AppHandle, Emitter};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
-use tauri::{AppHandle, Emitter};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkspaceTestItem {
@@ -157,10 +157,13 @@ pub async fn run_all_tests_streaming(
                         .and_then(|v| v.as_str())
                         .unwrap_or("")
                         .to_string();
-                    let _ = app.emit("test:event", serde_json::json!({
-                        "test_id": test_name,
-                        "event": "started"
-                    }));
+                    let _ = app.emit(
+                        "test:event",
+                        serde_json::json!({
+                            "test_id": test_name,
+                            "event": "started"
+                        }),
+                    );
                 }
                 "test-ok" => {
                     let test_name = msg
@@ -171,11 +174,14 @@ pub async fn run_all_tests_streaming(
                         .to_string();
                     let exec_time = msg.get("exec_time").and_then(|v| v.as_f64()).unwrap_or(0.0);
                     total_tests += 1;
-                    let _ = app.emit("test:event", serde_json::json!({
-                        "test_id": test_name,
-                        "event": "passed",
-                        "duration_ms": (exec_time * 1000.0) as u64
-                    }));
+                    let _ = app.emit(
+                        "test:event",
+                        serde_json::json!({
+                            "test_id": test_name,
+                            "event": "passed",
+                            "duration_ms": (exec_time * 1000.0) as u64
+                        }),
+                    );
                 }
                 "test-failed" => {
                     let test_name = msg
@@ -185,14 +191,21 @@ pub async fn run_all_tests_streaming(
                         .unwrap_or("")
                         .to_string();
                     let exec_time = msg.get("exec_time").and_then(|v| v.as_f64()).unwrap_or(0.0);
-                    let stdout_text = msg.get("stdout").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                    let stdout_text = msg
+                        .get("stdout")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string();
                     total_tests += 1;
-                    let _ = app.emit("test:event", serde_json::json!({
-                        "test_id": test_name,
-                        "event": "failed",
-                        "duration_ms": (exec_time * 1000.0) as u64,
-                        "message": stdout_text
-                    }));
+                    let _ = app.emit(
+                        "test:event",
+                        serde_json::json!({
+                            "test_id": test_name,
+                            "event": "failed",
+                            "duration_ms": (exec_time * 1000.0) as u64,
+                            "message": stdout_text
+                        }),
+                    );
                 }
                 _ => {}
             }
@@ -207,9 +220,7 @@ pub async fn run_all_tests_streaming(
 /// Frontend uses this to render green/red gutter line bars in Monaco.
 #[allow(clippy::collapsible_if)]
 #[tauri::command]
-pub async fn llvm_cov_report(
-    workspace_path: String,
-) -> Result<Vec<CoverageFileReport>, String> {
+pub async fn llvm_cov_report(workspace_path: String) -> Result<Vec<CoverageFileReport>, String> {
     let path = Path::new(&workspace_path);
 
     let output = Command::new("cargo")
@@ -217,10 +228,12 @@ pub async fn llvm_cov_report(
         .current_dir(path)
         .output()
         .await
-        .map_err(|e| format!(
-            "Failed to run cargo llvm-cov: {}. Install with: cargo install cargo-llvm-cov",
-            e
-        ))?;
+        .map_err(|e| {
+            format!(
+                "Failed to run cargo llvm-cov: {}. Install with: cargo install cargo-llvm-cov",
+                e
+            )
+        })?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);

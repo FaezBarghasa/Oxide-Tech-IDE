@@ -85,7 +85,7 @@ export function TopNavigationBar() {
         </div>
       </div>
 
-      {/* Center section: RustRover Run Widget */}
+      {/* Center section: Oxide Run Widget */}
       <div className="flex items-center relative">
         <div className="flex items-center">
           <div className="relative">

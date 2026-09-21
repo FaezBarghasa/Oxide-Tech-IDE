@@ -388,16 +388,27 @@ pub struct KlippWorkflowConfig {
 pub async fn run_klipp_workflow(config: KlippWorkflowConfig) -> Result<McuFlashResult, String> {
     let mut logs = Vec::new();
     logs.push("🛠️ [r_klipp workflow] Building firmware binary in release mode...".to_string());
-    logs.push(format!("   Target triple: thumbv7em-none-eabihf | Chip: {}", config.target_chip));
+    logs.push(format!(
+        "   Target triple: thumbv7em-none-eabihf | Chip: {}",
+        config.target_chip
+    ));
     if !config.features.is_empty() {
-        logs.push(format!("   Active features: {}", config.features.join(", ")));
+        logs.push(format!(
+            "   Active features: {}",
+            config.features.join(", ")
+        ));
     }
     logs.push("   Finished release [optimized + lto] in 1.42s".to_string());
-    logs.push(format!("⚡ Initializing probe-rs attachment via probe [{}]", config.probe_id));
+    logs.push(format!(
+        "⚡ Initializing probe-rs attachment via probe [{}]",
+        config.probe_id
+    ));
     logs.push("🔍 Erasing flash sectors & programming STM32 payload...".to_string());
     logs.push("📥 Flashing payload at 0x08000000 (148.6 KB)... done [285ms]".to_string());
     logs.push("✅ Verified CRC checksum: 0xFD890A12 [OK]".to_string());
-    logs.push("🚀 Core Reset & Vector Execution. Streaming defmt RTT frames on Channel 0...".to_string());
+    logs.push(
+        "🚀 Core Reset & Vector Execution. Streaming defmt RTT frames on Channel 0...".to_string(),
+    );
 
     Ok(McuFlashResult {
         success: true,
@@ -428,7 +439,9 @@ pub async fn mcp_get_server_configs() -> Result<Vec<McpServerEntry>, String> {
             status: "connected".to_string(),
             tools_count: 8,
             transport: "stdio".to_string(),
-            description: "On-chip debugging, flash memory programming, SVD registers, and RTT capture".to_string(),
+            description:
+                "On-chip debugging, flash memory programming, SVD registers, and RTT capture"
+                    .to_string(),
         },
         McpServerEntry {
             id: "mcp-cargo-gatekeeper".to_string(),
@@ -436,7 +449,8 @@ pub async fn mcp_get_server_configs() -> Result<Vec<McpServerEntry>, String> {
             status: "connected".to_string(),
             tools_count: 5,
             transport: "stdio".to_string(),
-            description: "Compiler diagnostics, safe AST diffs, and self-healing rule enforcement".to_string(),
+            description: "Compiler diagnostics, safe AST diffs, and self-healing rule enforcement"
+                .to_string(),
         },
         McpServerEntry {
             id: "mcp-qemu-redox".to_string(),
@@ -466,10 +480,7 @@ pub async fn mcp_toggle_server(server_id: String, enabled: bool) -> Result<bool,
 
 /// Halt the target MCU via probe-rs
 #[tauri::command]
-pub async fn mcu_halt(
-    chip: String,
-    probe_serial: Option<String>,
-) -> Result<String, String> {
+pub async fn mcu_halt(chip: String, probe_serial: Option<String>) -> Result<String, String> {
     let mut args = vec!["dap-server".to_string()];
     if let Some(serial) = &probe_serial {
         args.extend_from_slice(&["--probe".to_string(), serial.clone()]);
@@ -487,7 +498,10 @@ pub async fn mcu_halt(
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
         // Gracefully degrade: emit a stub message when no probe is connected
-        Ok(format!("Halt simulation (no probe connected): {}", stderr.lines().next().unwrap_or("halted")))
+        Ok(format!(
+            "Halt simulation (no probe connected): {}",
+            stderr.lines().next().unwrap_or("halted")
+        ))
     }
 }
 
@@ -514,11 +528,18 @@ pub async fn mcu_reset(
         .map_err(|e| format!("probe-rs reset failed: {}", e))?;
 
     if output.status.success() {
-        let action = if halt_after_reset { "reset+halt" } else { "reset" };
+        let action = if halt_after_reset {
+            "reset+halt"
+        } else {
+            "reset"
+        };
         Ok(format!("MCU {} {} successful", chip, action))
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        Ok(format!("Reset simulation (no probe): {}", stderr.lines().next().unwrap_or("reset")))
+        Ok(format!(
+            "Reset simulation (no probe): {}",
+            stderr.lines().next().unwrap_or("reset")
+        ))
     }
 }
 
@@ -566,4 +587,3 @@ pub async fn mcu_memory_read(
         Ok(vec![0u8; byte_count as usize])
     }
 }
-

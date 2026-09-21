@@ -12,6 +12,7 @@ pub mod handlers {
     pub mod process;
     pub mod pty_ops;
     pub mod rag;
+    pub mod search_ops;
     pub mod settings_storage;
     pub mod system;
     pub mod test_runner_ops;
@@ -157,6 +158,10 @@ pub fn run() {
             handlers::test_runner_ops::run_single_test,
             handlers::test_runner_ops::run_all_tests_streaming,
             handlers::test_runner_ops::llvm_cov_report,
+            // ── Global Search (Phase 7 complete) ──────────────────────────────────────
+            handlers::search_ops::search_workspace_text,
+            handlers::search_ops::search_workspace_symbols,
+            handlers::search_ops::search_replace_in_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

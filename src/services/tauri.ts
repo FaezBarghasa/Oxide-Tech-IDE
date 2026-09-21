@@ -5,7 +5,7 @@ import {
   GitFileStatusDetail,
   LineDiffDetail,
   MacroExpansionResult,
-} from '../types/rustrover';
+} from '../types/oxide';
 
 export const tauriCommands = {
   readFile: (path: string): Promise<string> => invoke('read_file', { path }),
@@ -31,16 +31,16 @@ export const tauriCommands = {
   gitCommitAsync: (message: string, workspacePath: string): Promise<string> => invoke('git_commit_async', { message, workspacePath }),
   gitCreatePRAsync: (title: string, body: string, branch: string, workspacePath: string): Promise<string> => invoke('git_create_pr_async', { title, body, branch, workspacePath }),
 
-  // RustRover Cargo operations
+  // Oxide Cargo operations
   cargoGetWorkspaceMetadata: (workspacePath: string): Promise<CargoWorkspaceMetadata> => invoke('cargo_get_workspace_metadata', { workspacePath }),
   rustExpandMacro: (sourceCode: string, macroName?: string, workspacePath: string = '.'): Promise<MacroExpansionResult> => invoke('rust_expand_macro', { sourceCode, macroName, workspacePath }),
   cargoAddDependency: (crateName: string, version?: string, workspacePath: string = '.'): Promise<string> => invoke('cargo_add_dependency', { crateName, version, workspacePath }),
 
-  // RustRover VCS line diffs & statuses
+  // Oxide VCS line diffs & statuses
   vcsGetDetailedStatus: (workspacePath: string): Promise<GitFileStatusDetail[]> => invoke('vcs_get_detailed_status', { workspacePath }),
   vcsGetLineDiffs: (filePath: string, workspacePath: string = '.'): Promise<LineDiffDetail[]> => invoke('vcs_get_line_diffs', { filePath, workspacePath }),
 
-  // RustRover Layout & Keymaps persistence
+  // Oxide Layout & Keymaps persistence
   saveIdeLayout: (layoutJson: string): Promise<void> => invoke('save_ide_layout', { layoutJson }),
   loadIdeLayout: (): Promise<string> => invoke('load_ide_layout'),
   saveUserKeymap: (keymapJson: string): Promise<void> => invoke('save_user_keymap', { keymapJson }),
@@ -121,21 +121,21 @@ export const tauriCommands = {
     invoke('fs_watch_stop'),
 
   // Local History Revision Engine
-  localHistoryRecordSnapshot: (filePath: string, content: string, triggerTag: string = 'save'): Promise<import('../types/rustrover').LocalHistoryRevision> =>
+  localHistoryRecordSnapshot: (filePath: string, content: string, triggerTag: string = 'save'): Promise<import('../types/oxide').LocalHistoryRevision> =>
     invoke('local_history_record_snapshot', { filePath, content, triggerTag }),
-  localHistoryGetRevisions: (filePath: string): Promise<import('../types/rustrover').LocalHistoryRevision[]> =>
+  localHistoryGetRevisions: (filePath: string): Promise<import('../types/oxide').LocalHistoryRevision[]> =>
     invoke('local_history_get_revisions', { filePath }),
   localHistoryGetRevisionContent: (filePath: string, revisionId: string): Promise<string> =>
     invoke('local_history_get_revision_content', { filePath, revisionId }),
 
   // Cargo Test Runner Engine (Phase 4 complete)
-  discoverWorkspaceTests: (workspacePath: string): Promise<import('../types/rustrover').WorkspaceTestItem[]> =>
+  discoverWorkspaceTests: (workspacePath: string): Promise<import('../types/oxide').WorkspaceTestItem[]> =>
     invoke('discover_workspace_tests', { workspacePath }),
-  runSingleTest: (workspacePath: string, testId: string): Promise<import('../types/rustrover').TestRunResult> =>
+  runSingleTest: (workspacePath: string, testId: string): Promise<import('../types/oxide').TestRunResult> =>
     invoke('run_single_test', { workspacePath, testId }),
   runAllTestsStreaming: (workspacePath: string): Promise<number> =>
     invoke('run_all_tests_streaming', { workspacePath }),
-  llvmCovReport: (workspacePath: string): Promise<import('../types/rustrover').CoverageFileReport[]> =>
+  llvmCovReport: (workspacePath: string): Promise<import('../types/oxide').CoverageFileReport[]> =>
     invoke('llvm_cov_report', { workspacePath }),
 
   // LSP Phase 2 completions — references, rename, workspace symbols, format
@@ -165,8 +165,16 @@ export const tauriCommands = {
     invoke('vcs_git_stash', { workspacePath, message }),
   vcsGitStashPop: (workspacePath: string): Promise<string> =>
     invoke('vcs_git_stash_pop', { workspacePath }),
-  vcsGitLog: (workspacePath: string, limit: number): Promise<import('../types/rustrover').GitCommitEntry[]> =>
+  vcsGitLog: (workspacePath: string, limit: number): Promise<import('../types/oxide').GitCommitEntry[]> =>
     invoke('vcs_git_log', { workspacePath, limit }),
+
+  // Global Search Phase 7 completions
+  searchWorkspaceText: (workspacePath: string, query: string, options?: import('../types/oxide').SearchOptions): Promise<import('../types/oxide').SearchFileGroup[]> =>
+    invoke('search_workspace_text', { workspacePath, query, options }),
+  searchWorkspaceSymbols: (workspacePath: string, query: string): Promise<import('../types/oxide').SearchMatch[]> =>
+    invoke('search_workspace_symbols', { workspacePath, query }),
+  searchReplaceInFile: (filePath: string, find: string, replace: string, useRegex: boolean, caseSensitive: boolean): Promise<number> =>
+    invoke('search_replace_in_file', { filePath, find, replace, useRegex, caseSensitive }),
 };
 
 

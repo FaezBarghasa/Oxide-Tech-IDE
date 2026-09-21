@@ -35,6 +35,7 @@ syn = { workspace = true }
 quote = { workspace = true }
 uuid = { workspace = true }
 notify = { workspace = true }
+regex = { workspace = true }
 
 [workspace.dependencies]
 tokio = { version = "1.52", features = ["full"] }

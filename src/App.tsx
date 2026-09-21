@@ -9,7 +9,8 @@ import {
   TransientOverlay,
   TaskHUD,
   SettingsModal,
-  SearchEverywhereOverlay
+  SearchEverywhereOverlay,
+  FindInFilesModal
 } from './components';
 
 export default function App() {
@@ -19,7 +20,7 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const testOverlay = params.get('overlay');
-    if (testOverlay === 'search-everywhere' || testOverlay === 'settings') {
+    if (testOverlay === 'search-everywhere' || testOverlay === 'settings' || testOverlay === 'find-in-files') {
       setActiveOverlay(testOverlay);
     }
   }, [setActiveOverlay]);
@@ -28,6 +29,13 @@ export default function App() {
     function handleKeyDown(e: KeyboardEvent) {
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
       const now = Date.now();
+
+      // Ctrl+Shift+F -> Find in Files
+      if (isCmdOrCtrl && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        setActiveOverlay(activeOverlay === 'find-in-files' ? null : 'find-in-files');
+        return;
+      }
 
       // Double-Shift Detection for Search Everywhere
       if (e.key === 'Shift') {
@@ -88,6 +96,10 @@ export default function App() {
       <SearchEverywhereOverlay 
         isOpen={activeOverlay === 'search-everywhere'} 
         onClose={() => setActiveOverlay(null)} 
+      />
+      <FindInFilesModal
+        isOpen={activeOverlay === 'find-in-files'}
+        onClose={() => setActiveOverlay(null)}
       />
     </QueryClientProvider>
   );

@@ -48,11 +48,15 @@ impl CompilerGuard {
             || msg_lower.contains("unresolved import")
             || msg_lower.contains("not found in this scope")
         {
-            if msg_lower.contains("defmt") || msg_lower.contains("format") && msg_lower.contains("trait") {
+            if msg_lower.contains("defmt")
+                || msg_lower.contains("format") && msg_lower.contains("trait")
+            {
                 return HealingSuggestion {
                     file_path: file_path.to_string(),
                     line_number: 1,
-                    action_type: HealingActionType::EmbeddedNoStdFix("use defmt::Format;".to_string()),
+                    action_type: HealingActionType::EmbeddedNoStdFix(
+                        "use defmt::Format;".to_string(),
+                    ),
                     safety_tier: SafetyTier::SafeAutoApply,
                     description: "Add embedded 'use defmt::Format;' trait import".to_string(),
                     replacement_code: Some("use defmt::Format;\n".to_string()),
@@ -62,7 +66,9 @@ impl CompilerGuard {
                 return HealingSuggestion {
                     file_path: file_path.to_string(),
                     line_number: 1,
-                    action_type: HealingActionType::EmbeddedNoStdFix("use embassy_time::{Duration, Timer};".to_string()),
+                    action_type: HealingActionType::EmbeddedNoStdFix(
+                        "use embassy_time::{Duration, Timer};".to_string(),
+                    ),
                     safety_tier: SafetyTier::SafeAutoApply,
                     description: "Add embedded 'use embassy_time::{Duration, Timer};'".to_string(),
                     replacement_code: Some("use embassy_time::{Duration, Timer};\n".to_string()),
@@ -72,7 +78,9 @@ impl CompilerGuard {
                 return HealingSuggestion {
                     file_path: file_path.to_string(),
                     line_number: 1,
-                    action_type: HealingActionType::EmbeddedNoStdFix("use heapless::Vec;".to_string()),
+                    action_type: HealingActionType::EmbeddedNoStdFix(
+                        "use heapless::Vec;".to_string(),
+                    ),
                     safety_tier: SafetyTier::SafeAutoApply,
                     description: "Add bounded embedded 'use heapless::Vec;'".to_string(),
                     replacement_code: Some("use heapless::Vec;\n".to_string()),
@@ -102,7 +110,9 @@ impl CompilerGuard {
                 return HealingSuggestion {
                     file_path: file_path.to_string(),
                     line_number: 1,
-                    action_type: HealingActionType::AddImport("use std::collections::HashMap;".to_string()),
+                    action_type: HealingActionType::AddImport(
+                        "use std::collections::HashMap;".to_string(),
+                    ),
                     safety_tier: SafetyTier::SafeAutoApply,
                     description: "Add missing import 'use std::collections::HashMap;'".to_string(),
                     replacement_code: Some("use std::collections::HashMap;\n".to_string()),
@@ -113,7 +123,8 @@ impl CompilerGuard {
 
         // 2. Type Mismatch: &str to String
         if (msg_lower.contains("mismatched types") || msg_lower.contains("expected struct"))
-            && msg_lower.contains("string") && msg_lower.contains("&str")
+            && msg_lower.contains("string")
+            && msg_lower.contains("&str")
         {
             let trimmed = current_line_content.trim_end_matches(';');
             let replacement = format!("{}.to_string();", trimmed);
@@ -145,7 +156,9 @@ impl CompilerGuard {
         }
 
         // 4. Trait Not Implemented: Debug / Clone / defmt::Format
-        if msg_lower.contains("implement `debug`") || msg_lower.contains("the trait `debug` is not implemented") {
+        if msg_lower.contains("implement `debug`")
+            || msg_lower.contains("the trait `debug` is not implemented")
+        {
             return HealingSuggestion {
                 file_path: file_path.to_string(),
                 line_number,
@@ -155,7 +168,10 @@ impl CompilerGuard {
                 replacement_code: Some("#[derive(Debug)]\n".to_string()),
                 diff_preview: Some("+ #[derive(Debug)]\n".to_string()),
             };
-        } else if msg_lower.contains("defmt::format") || msg_lower.contains("implement `format`") || msg_lower.contains("the trait `format` is not implemented") {
+        } else if msg_lower.contains("defmt::format")
+            || msg_lower.contains("implement `format`")
+            || msg_lower.contains("the trait `format` is not implemented")
+        {
             return HealingSuggestion {
                 file_path: file_path.to_string(),
                 line_number,
@@ -167,14 +183,16 @@ impl CompilerGuard {
             };
         }
 
-
         // 5. Clippy Machine-Applicable Heuristics
-        if msg_lower.contains("clippy::needless_return") || msg_lower.contains("unneeded `return`") {
+        if msg_lower.contains("clippy::needless_return") || msg_lower.contains("unneeded `return`")
+        {
             let fixed = current_line_content.replace("return ", "").replace(";", "");
             return HealingSuggestion {
                 file_path: file_path.to_string(),
                 line_number,
-                action_type: HealingActionType::ClippyMachineFix("Remove needless return".to_string()),
+                action_type: HealingActionType::ClippyMachineFix(
+                    "Remove needless return".to_string(),
+                ),
                 safety_tier: SafetyTier::SafeAutoApply,
                 description: "Clippy: Remove redundant 'return' statement".to_string(),
                 replacement_code: Some(fixed.trim().to_string()),
@@ -193,7 +211,6 @@ impl CompilerGuard {
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -311,4 +328,3 @@ mod tests {
         assert_eq!(suggestion.replacement_code, Some("a + b".to_string()));
     }
 }
-

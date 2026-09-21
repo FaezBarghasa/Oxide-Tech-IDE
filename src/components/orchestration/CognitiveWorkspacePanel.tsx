@@ -9,7 +9,7 @@ interface CognitiveWorkspacePanelProps {
 }
 
 export const CognitiveWorkspacePanel: React.FC<CognitiveWorkspacePanelProps> = ({
-  workspacePath = '/home/jrad/RustroverProjects/Oxide-Tech-IDE',
+  workspacePath = '.',
   workerId = 'alice',
   projectId = 'oxide-tech-ide',
 }) => {

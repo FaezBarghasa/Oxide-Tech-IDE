@@ -107,7 +107,7 @@ export function EditorTabs() {
                 </button>
               </div>
 
-              {/* Active Tab Blue Bottom Indicator Line (RustRover style) */}
+              {/* Active Tab Blue Bottom Indicator Line (Oxide style) */}
               {isActive && (
                 <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#3574f0]" />
               )}

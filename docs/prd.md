@@ -4,7 +4,7 @@
 
 **Oxide Tech IDE** is an enterprise-grade, high-performance integrated development environment and **Central Nervous System / Visual Orchestration Layer** for advanced systems programming, embedded hardware development, local AI agentic workflows, and declarative visual engineering.
 
-Built with **Tauri v2 + React 19 + TypeScript (strict mode, zero `any`) + Rust (`oxide_core`)**, Oxide Tech IDE combines **1:1 JetBrains RustRover/CLion UX parity** with deep, purpose-built integrations for:
+Built with **Tauri v2 + React 19 + TypeScript (strict mode, zero `any`) + Rust (`oxide_core`)**, Oxide Tech IDE combines **commercial-grade IDE UX parity** with deep, purpose-built integrations for:
 1. **Embedded & Real-Time Hardware**: First-class support for `r_klipp` (3D printer firmware architecture), `embedded-hal`, `probe-rs`, `defmt` RTT, SVD peripheral register mapping, and QEMU Cortex-M/RISC-V emulation.
 2. **Local AI & Agentic Orchestration ("Oxide Brain")**: Model Context Protocol (MCP) server management, AST-aware local RAG (Tree-sitter + Qdrant + SurrealDB), sandboxed Wasm/Wasmtime execution, and human-in-the-loop (HITL) approval gates.
 3. **OS & Systems Programming**: Native Redox OS microkernel development workflow, Unix-like IPC/network daemon integration (`netstack`, `ipcd`), zero-copy binary inspection (`rkyv`, `postcard`), and PTY session multiplexing.
@@ -31,9 +31,9 @@ Built with **Tauri v2 + React 19 + TypeScript (strict mode, zero `any`) + Rust (
 
 ## 3. Detailed Feature Specifications
 
-### 3.1 JetBrains RustRover UX & Navigation Parity
+### 3.1 Modern Desktop IDE UX & Navigation Parity
 - **Global Search Everywhere (`Shift+Shift`)**: Fast fuzzy searching across All, Classes/Structs, Files, Symbols, Actions, and Oxide AI.
-- **JetBrains Keymap & Spatial Docking**: Standard keybindings (`Shift+F10`, `Shift+F9`, `Ctrl+F9`, `Alt+Enter`, `Ctrl+Alt+S`) and `flexlayout-react` docking engine with persistent layout storage (`~/.oxide/layout.json`).
+- **Configurable Keymap & Spatial Docking**: Standard keybindings (`Shift+F10`, `Shift+F9`, `Ctrl+F9`, `Alt+Enter`, `Ctrl+Alt+S`) and `flexlayout-react` docking engine with persistent layout storage (`~/.oxide/layout.json`).
 - **Context Actions (`Alt+Enter`)**: AI quick-fix, derive macro insertion, syn macro expansion, and cargo check trigger.
 - **3-Way Visual Merge Window**: Ours, Base, and Theirs 3-pane merge tool with live interactive resolved buffer editor.
 

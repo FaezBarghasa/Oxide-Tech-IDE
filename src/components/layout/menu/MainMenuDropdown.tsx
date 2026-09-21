@@ -511,7 +511,7 @@ export function MainMenuDropdown() {
       items: [
         { label: 'Help Contents', shortcut: 'F1', icon: HelpCircle, action: () => {} },
         { label: 'Tip of the Day', action: () => {} },
-        { label: 'What\'s New in RustRover 2026.2', action: () => {} },
+        { label: 'What\'s New in Oxide IDE', action: () => {} },
         { label: 'Keymap Reference', action: () => {} },
         { divider: true, label: '' },
         { label: 'Check for Updates...', action: () => {} },

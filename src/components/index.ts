@@ -29,6 +29,7 @@ export * from './layout/Omnibar';
 export * from './layout/TransientOverlay';
 export * from './layout/SettingsModal';
 export * from './search/SearchEverywhereOverlay';
+export * from './search/FindInFilesModal';
 export * from './tools/PlaywrightToolWindow';
 export * from './tools/SlintPreviewToolWindow';
 export * from './tools/EmbeddedSimToolWindow';

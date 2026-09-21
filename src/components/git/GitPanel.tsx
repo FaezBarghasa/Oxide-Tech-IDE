@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useFileSystemStore } from '../../state/fileSystemStore';
 import { useEditorStore } from '../../state/editorStore';
 import { tauriCommands } from '../../services/tauri';
-import { GitCommitEntry } from '../../types/rustrover';
+import { GitCommitEntry } from '../../types/oxide';
 import { GitBranch, RefreshCw, Square, CheckCircle2, Upload, Archive } from 'lucide-react';
 import { cn } from '../../utils/theme';
 

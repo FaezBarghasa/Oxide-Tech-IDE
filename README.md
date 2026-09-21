@@ -1,4 +1,4 @@
-# Oxide Tech IDE 🦀⚡ — Full-Stack Visual Engineering Workstation & JetBrains RustRover Competitor
+# Oxide Tech IDE 🦀⚡ — Full-Stack Visual Engineering Workstation & Rust Development Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-2024%20Edition-orange.svg)](https://www.rust-lang.org/)
@@ -6,7 +6,7 @@
 [![React 19](https://img.shields.io/badge/React-v19-61DAFB.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20Zero--Any-3178C6.svg)](https://www.typescriptlang.org/)
 
-**Oxide Tech IDE** is a high-performance, developer-first integrated development environment built with **Tauri v2 + React 19 + Rust**. Engineered to deliver commercial-grade **1:1 feature and UX parity with JetBrains RustRover / CLion** while serving as an advanced **Full-Stack Visual Engineering Workstation** with native tooling for **Embedded Systems (probe-rs, defmt, QEMU, SVD)**, **Slint UI**, **Embedded Graphics**, **Iced**, and **Playwright E2E**.
+**Oxide Tech IDE** is a high-performance, developer-first integrated development environment built with **Tauri v2 + React 19 + Rust**. Engineered to deliver a modern, keyboard-driven development experience while serving as an advanced **Full-Stack Visual Engineering Workstation** with native tooling for **Embedded Systems (probe-rs, defmt, QEMU, SVD)**, **Slint UI**, **Embedded Graphics**, **Iced**, and **Playwright E2E**.
 
 ---
 
@@ -27,7 +27,7 @@
 
 ### 4. Cargo Test Explorer & Visual Conflict Resolution
 - **Test Discovery & Execution**: Discovers workspace tests dynamically via `cargo test -- --list --format=terse` and runs individual or test suites with live stdout/stderr parsing and failure analysis.
-- **3-Way Visual Merge Window**: JetBrains-style 3-pane merge tool (Ours, Base, Theirs) with an interactive resolved output editor to quickly resolve merge conflicts.
+- **3-Way Visual Merge Window**: 3-pane merge tool (Ours, Base, Theirs) with an interactive resolved output editor to quickly resolve merge conflicts.
 
 ### 5. Step-by-Step MCU & Hardware Debugger (`Shift+F9`)
 - **Multi-Engine Target Debugging**: Integrated support for **`probe-rs`** (CMSIS-DAP / ST-Link / J-Link SWD/JTAG), **`OpenOCD`**, **`QEMU` Cortex-M emulator**, and **`LLDB`**.
@@ -53,10 +53,10 @@
 ![Search Everywhere Overlay](docs/assets/rustrover_search_everywhere.png)
 
 ### Step-by-Step MCU & Hardware Debugger
-![RustRover MCU Debugger](docs/assets/rustrover_mcu_debugger.png)
+![Oxide MCU Debugger](docs/assets/rustrover_mcu_debugger.png)
 
 ### MQTT 5.0 Interactive Terminal & Telemetry Hub
-![RustRover MQTT Terminal](docs/assets/rustrover_mqtt_terminal.png)
+![Oxide MQTT Terminal](docs/assets/rustrover_mqtt_terminal.png)
 
 ---
 

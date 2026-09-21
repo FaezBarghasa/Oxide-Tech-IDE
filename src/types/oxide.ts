@@ -96,3 +96,27 @@ export interface TestStreamEvent {
   duration_ms?: number;
   message?: string;
 }
+
+/** Phase 7: Global Search types */
+export interface SearchMatch {
+  file_path: string;
+  line_number: number;
+  column_start: number;
+  column_end: number;
+  line_text: string;
+  match_text: string;
+}
+
+export interface SearchFileGroup {
+  file_path: string;
+  matches: SearchMatch[];
+}
+
+export interface SearchOptions {
+  case_sensitive?: boolean;
+  whole_word?: boolean;
+  use_regex?: boolean;
+  include_glob?: string;
+  exclude_glob?: string;
+  max_results?: number;
+}

@@ -69,7 +69,7 @@ export function StatusBar() {
               <div className="absolute bottom-6 left-0 w-48 bg-[#2b2d30] border border-[#393b40] rounded-md shadow-2xl p-2 z-50 text-xs">
                 <div className="text-[10px] font-bold text-[#868a91] uppercase tracking-wider mb-1">Git Branches</div>
                 <div className="space-y-1">
-                  {['main', 'develop', 'feat/rustrover-ui'].map((b) => (
+                  {['main', 'develop', 'feat/oxide-ui'].map((b) => (
                     <button
                       key={b}
                       onClick={() => {

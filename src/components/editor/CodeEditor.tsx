@@ -54,7 +54,7 @@ export function CodeEditor() {
       editorRef.current = monaco.editor.create(containerRef.current, {
         value: fileData?.content || '',
         language: getLanguage(currentFile),
-        theme: 'rustrover-dark',
+        theme: 'oxide-dark',
         fontSize,
         minimap: { enabled: showMinimap },
         fontFamily: "'JetBrains Mono', 'Fira Code', monospace",

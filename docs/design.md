@@ -2,13 +2,13 @@
 
 ## 1. Visual Design Philosophy
 
-Oxide Tech IDE adheres to the **JetBrains New UI Design Language** coupled with modern high-density dark mode aesthetics. Every component is designed for maximum information density, clean typography, low visual fatigue during extended sessions, and pixel-perfect spatial alignment.
+Oxide Tech IDE adheres to a modern, high-density visual design language coupled with dark mode aesthetics. Every component is designed for maximum information density, clean typography, low visual fatigue during extended sessions, and pixel-perfect spatial alignment.
 
 ---
 
 ## 2. Color Palette & Token System
 
-All color tokens are calibrated to match JetBrains RustRover / CLion dark theme:
+All color tokens are calibrated for modern dark theme IDE workflows:
 
 | Token Name | Hex Code | Purpose |
 | :--- | :--- | :--- |
@@ -48,7 +48,7 @@ All color tokens are calibrated to match JetBrains RustRover / CLion dark theme:
 - **Dividers**: 1px solid `#2b2d30`.
 
 ### 4.2 Monaco Editor Rust Customizations
-- **Theme**: `rustrover-dark` with tailored keyword (`#cc7832`), type (`#6897bb`), trait (`#b200b2`), macro (`#ffc66d`), string (`#6a8759`), and comment (`#808080`) highlighting.
+- **Theme**: `oxide-dark` with tailored keyword (`#cc7832`), type (`#6897bb`), trait (`#b200b2`), macro (`#ffc66d`), string (`#6a8759`), and comment (`#808080`) highlighting.
 - **Glyph Margin**: 24px width for breakpoint dots (`#db5860`), execution arrow glyphs (`#e5a00d`), and green play icons (`#59a869`).
 - **Inlay Hints**: 10px font size, `#868a91` text, `#2b2d30` badge background with rounded corners.
 

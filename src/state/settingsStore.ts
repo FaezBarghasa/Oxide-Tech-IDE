@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type ActiveOverlayType = 'omnibar' | 'harpoon' | 'prompt' | 'transient' | 'settings' | 'search-everywhere' | null;
+export type ActiveOverlayType = 'omnibar' | 'harpoon' | 'prompt' | 'transient' | 'settings' | 'search-everywhere' | 'find-in-files' | null;
 export type TransientViewType = 'rest' | 'serial' | 'mqtt' | 'extensions' | 'skills' | 'mcp' | 'previews' | 'cognitive' | 'graph' | 'scrubber' | 'forge' | 'claude' | 'cortex' | null;
 export type ApiProviderType = 'gemini' | 'openai' | 'anthropic' | 'custom';
 

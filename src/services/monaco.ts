@@ -7,8 +7,8 @@ export function setupMonacoRust() {
     monaco.languages.register({ id: 'rust' });
   }
 
-  // 1:1 JetBrains RustRover Dark / Darcula Color Theme
-  monaco.editor.defineTheme('rustrover-dark', {
+  // Oxide Dark Theme
+  monaco.editor.defineTheme('oxide-dark', {
     base: 'vs-dark',
     inherit: true,
     rules: [
@@ -107,7 +107,7 @@ export function setupMonacoRust() {
     }
   });
 
-  // Register RustRover Inlay Hints Provider (Type Hints, Parameter Hints, Chaining Hints)
+  // Register Oxide Inlay Hints Provider (Type Hints, Parameter Hints, Chaining Hints)
   monaco.languages.registerInlayHintsProvider('rust', {
     provideInlayHints: (model, _range, _token) => {
       const hints: monaco.languages.InlayHint[] = [];

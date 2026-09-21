@@ -3,7 +3,7 @@ import { listen } from '@tauri-apps/api/event';
 import { Play, RotateCw, CheckCircle, XCircle, Clock, Terminal, Zap } from 'lucide-react';
 import { useFileSystemStore } from '../../state/fileSystemStore';
 import { tauriCommands } from '../../services/tauri';
-import { WorkspaceTestItem, TestRunResult, TestStreamEvent } from '../../types/rustrover';
+import { WorkspaceTestItem, TestRunResult, TestStreamEvent } from '../../types/oxide';
 
 export function TestExplorerToolWindow() {
   const workspaceRoot = useFileSystemStore((s) => s.workspaceRoot);

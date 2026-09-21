@@ -8,7 +8,7 @@ interface ForgeToolSynthesizerProps {
 }
 
 export const ForgeToolSynthesizer: React.FC<ForgeToolSynthesizerProps> = ({
-  workspacePath = '/home/jrad/RustroverProjects/Oxide-Tech-IDE'
+  workspacePath = '.'
 }) => {
   const [tools, setTools] = useState<ForgedToolSummary[]>([]);
   const [activeTab, setActiveTab] = useState<'catalog' | 'forge' | 'crystallized'>('catalog');

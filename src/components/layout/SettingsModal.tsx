@@ -16,7 +16,7 @@ type SettingsCategory =
   | 'terminal' 
   | 'version_control';
 
-export function RustRoverSettingsModal() {
+export function SettingsModal() {
   const { 
     fontSize, setFontSize, 
     showMinimap, toggleMinimap, 
@@ -170,7 +170,7 @@ export function RustRoverSettingsModal() {
                   <div className="flex flex-col space-y-1.5">
                     <label className="text-[11px] font-medium text-[#dfe1e5]">Theme</label>
                     <select className="w-64 bg-[#2b2d30] border border-[#393b40] rounded px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-[#3574f0]">
-                      <option value="rustrover-dark">RustRover Dark (New UI)</option>
+                      <option value="oxide-dark">Oxide Dark (Modern UI)</option>
                       <option value="darcula">Darcula (Classic)</option>
                       <option value="high-contrast">High Contrast Dark</option>
                     </select>
@@ -207,7 +207,7 @@ export function RustRoverSettingsModal() {
                       onChange={(e: any) => setKeymapScheme(e.target.value)}
                       className="w-56 bg-[#2b2d30] border border-[#393b40] rounded px-2.5 py-1.5 text-white text-xs focus:outline-none focus:border-[#3574f0]"
                     >
-                      <option value="Default (IntelliJ)">Default (JetBrains IntelliJ / RustRover)</option>
+                      <option value="Default (Oxide)">Default (Oxide IDE)</option>
                       <option value="VS Code">VS Code</option>
                       <option value="Emacs">Emacs</option>
                       <option value="Sublime Text">Sublime Text</option>
@@ -215,7 +215,7 @@ export function RustRoverSettingsModal() {
                   </div>
 
                   <div className="border border-[#2b2d30] rounded bg-[#1a1b1d] p-3 text-[11px] space-y-2">
-                    <div className="text-white font-medium">Core RustRover Shortcuts</div>
+                    <div className="text-white font-medium">Core Oxide Shortcuts</div>
                     <div className="grid grid-cols-2 gap-2 text-[#868a91]">
                       <div>Search Everywhere: <span className="font-mono text-[#dfe1e5]">Shift+Shift</span></div>
                       <div>Run Project: <span className="font-mono text-[#dfe1e5]">Shift+F10</span></div>
