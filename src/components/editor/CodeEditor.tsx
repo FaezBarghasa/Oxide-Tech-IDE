@@ -9,6 +9,7 @@ import { setupMonacoRust } from '../../services/monaco';
 import { initializeLspClient, syncDocumentOpen, syncDocumentChange } from '../../services/lspClient';
 import { tauriCommands } from '../../services/tauri';
 import { EditorTabs } from './EditorTabs';
+import { Breadcrumbs } from '../layout/Breadcrumbs';
 import { AIFloatingPrompt } from '../ai/AIFloatingPrompt';
 import { Activity, Play, Bug, Sparkles } from 'lucide-react';
 
@@ -247,7 +248,12 @@ export function CodeEditor() {
 
   return (
     <div className="flex flex-col h-full bg-[#1e1f22] overflow-hidden relative font-sans">
-      {!zenMode && <EditorTabs />}
+      {!zenMode && (
+        <>
+          <EditorTabs />
+          <Breadcrumbs />
+        </>
+      )}
       {!currentFile ? (
         <div className="flex-grow flex flex-col items-center justify-center text-[#868a91] select-none">
           <Activity className="w-10 h-10 mb-3 text-[#3574f0] animate-pulse" />
