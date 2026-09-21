@@ -28,6 +28,9 @@ Oxide-Tech-IDE/
 │   │       ├── claude_bridge.rs     -> unit tests for MCP tool discovery & parsing
 │   │       ├── privacy_guard.rs     -> unit tests for secret redaction & isolation
 │   │       └── cortex_engine.rs     -> unit tests for embedding normalization
+│   ├── src/handlers/
+│   │   ├── search_ops.rs            -> unit tests for ripgrep streaming & symbol extraction
+│   │   └── test_runner_ops.rs       -> unit tests for cargo test json parser & llvm-cov reports
 │   └── tests/
 │       ├── integration_tests.rs     -> PTY session lifecycle & full swarm execution
 │       ├── chaos_tests.rs           -> Crash recovery & sandbox process isolation
