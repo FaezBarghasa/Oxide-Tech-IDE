@@ -249,3 +249,86 @@ pub async fn vcs_git_log(
 
     Ok(commits)
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitBlameLine {
+    pub line_number: u32,
+    pub commit_hash: String,
+    pub author: String,
+    pub date: String,
+    pub summary: String,
+}
+
+/// Returns git blame information for a file line by line
+#[tauri::command]
+pub async fn vcs_git_blame(
+    workspace_path: String,
+    file_path: String,
+) -> Result<Vec<GitBlameLine>, String> {
+    let output = Command::new("git")
+        .args(["blame", "--porcelain", &file_path])
+        .current_dir(Path::new(&workspace_path))
+        .output()
+        .await
+        .map_err(|e| format!("Failed to run git blame: {}", e))?;
+
+    if !output.status.success() {
+        return Ok(Vec::new());
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut blame_lines = Vec::new();
+    let mut current_hash = String::new();
+    let mut current_author = String::new();
+    let mut current_date = String::new();
+    let mut current_summary = String::new();
+    let mut line_num = 1;
+
+    for line in stdout.lines() {
+        if let Some(hash) = line.strip_prefix("author ") {
+            current_author = hash.to_string();
+        } else if let Some(time) = line.strip_prefix("author-time ") {
+            if let Ok(ts) = time.parse::<i64>() {
+                current_date = chrono::DateTime::from_timestamp(ts, 0)
+                    .map(|d| d.format("%Y-%m-%d").to_string())
+                    .unwrap_or_default();
+            }
+        } else if let Some(sum) = line.strip_prefix("summary ") {
+            current_summary = sum.to_string();
+        } else if line.starts_with('\t') {
+            blame_lines.push(GitBlameLine {
+                line_number: line_num,
+                commit_hash: current_hash.clone(),
+                author: current_author.clone(),
+                date: current_date.clone(),
+                summary: current_summary.clone(),
+            });
+            line_num += 1;
+        } else if let Some(first_tok) = line.split_whitespace().next().filter(|t| t.len() == 40) {
+            current_hash = first_tok[0..8].to_string();
+        }
+    }
+
+    Ok(blame_lines)
+}
+
+/// Cherry-pick a commit by hash
+#[tauri::command]
+pub async fn vcs_git_cherry_pick(
+    workspace_path: String,
+    commit_hash: String,
+) -> Result<String, String> {
+    let output = Command::new("git")
+        .args(["cherry-pick", &commit_hash])
+        .current_dir(Path::new(&workspace_path))
+        .output()
+        .await
+        .map_err(|e| format!("Failed to run git cherry-pick: {}", e))?;
+
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    } else {
+        Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
+    }
+}
+

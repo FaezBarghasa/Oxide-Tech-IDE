@@ -36,6 +36,8 @@ export * from './tools/EmbeddedSimToolWindow';
 export * from './tools/IcedInspectorToolWindow';
 export * from './tools/DebuggerToolWindow';
 export * from './tools/MQTTTerminalToolWindow';
+export * from './tools/MemoryHexView';
+export * from './tools/DisassemblyView';
 export * from './studio/ModelCatalog';
 export * from './studio/CanvasCodeGraph';
 export * from './orchestration/TimelineScrubber';

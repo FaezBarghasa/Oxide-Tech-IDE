@@ -87,6 +87,8 @@ pub fn run() {
             handlers::vcs_ops::vcs_git_stash,
             handlers::vcs_ops::vcs_git_stash_pop,
             handlers::vcs_ops::vcs_git_log,
+            handlers::vcs_ops::vcs_git_blame,
+            handlers::vcs_ops::vcs_git_cherry_pick,
             // ── Hardware / Serial / MQTT ─────────────────────────────────────────────
             handlers::hardware_daemon::connect_serial_port_daemon,
             handlers::hardware_daemon::connect_mqtt_daemon,
@@ -125,6 +127,8 @@ pub fn run() {
             handlers::mcu_debugger_ops::mcu_halt,
             handlers::mcu_debugger_ops::mcu_reset,
             handlers::mcu_debugger_ops::mcu_memory_read,
+            handlers::mcu_debugger_ops::mcu_memory_write,
+            handlers::mcu_debugger_ops::mcu_disassemble,
             // ── PTY / Terminal ────────────────────────────────────────────────────────
             handlers::pty_ops::pty_spawn,
             handlers::pty_ops::pty_write,

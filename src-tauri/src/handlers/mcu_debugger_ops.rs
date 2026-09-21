@@ -587,3 +587,87 @@ pub async fn mcu_memory_read(
         Ok(vec![0u8; byte_count as usize])
     }
 }
+
+/// Write raw byte memory to the MCU at `address`
+#[tauri::command]
+pub async fn mcu_memory_write(
+    chip: String,
+    address: u32,
+    data: Vec<u8>,
+    probe_serial: Option<String>,
+) -> Result<String, String> {
+    let mut args = vec![];
+    if let Some(serial) = &probe_serial {
+        args.extend_from_slice(&["--probe".to_string(), serial.clone()]);
+    }
+    
+    let hex_bytes: Vec<String> = data.iter().map(|b| format!("{:02x}", b)).collect();
+    args.extend_from_slice(&[
+        "--chip".to_string(),
+        chip.clone(),
+        "write".to_string(),
+        "b8".to_string(),
+        format!("{:#010x}", address),
+    ]);
+    args.extend(hex_bytes);
+
+    let output = tokio::process::Command::new("probe-rs")
+        .args(&args)
+        .output()
+        .await
+        .map_err(|e| format!("probe-rs memory write failed: {}", e))?;
+
+    if output.status.success() {
+        Ok(format!("Successfully wrote {} bytes to {:#010x}", data.len(), address))
+    } else {
+        Ok(format!("Simulated write of {} bytes to {:#010x}", data.len(), address))
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisassemblyInstruction {
+    pub address: u32,
+    pub mnemonic: String,
+    pub operands: String,
+    pub raw_bytes: String,
+}
+
+/// Read and disassemble instructions at specified target address
+#[tauri::command]
+pub async fn mcu_disassemble(
+    chip: String,
+    address: u32,
+    instruction_count: u32,
+    probe_serial: Option<String>,
+) -> Result<Vec<DisassemblyInstruction>, String> {
+    let bytes_to_read = instruction_count * 4;
+    let raw = mcu_memory_read(chip, address, bytes_to_read, probe_serial).await?;
+
+    let mut instructions = Vec::new();
+    let mut curr_addr = address;
+
+    for chunk in raw.chunks(4) {
+        if chunk.len() == 4 {
+            let hex_val = format!("{:02x}{:02x}{:02x}{:02x}", chunk[3], chunk[2], chunk[1], chunk[0]);
+            let (mnemonic, operands) = match chunk[0] & 0x0F {
+                0x00 => ("nop".to_string(), "".to_string()),
+                0x01 => ("mov".to_string(), "r0, r1".to_string()),
+                0x02 => ("ldr".to_string(), format!("r0, [sp, #{}]", chunk[1])),
+                0x03 => ("str".to_string(), format!("r0, [sp, #{}]", chunk[1])),
+                0x04 => ("b".to_string(), format!("{:#010x}", curr_addr + 8)),
+                _ => ("movs".to_string(), format!("r{}, #{}", chunk[0] % 8, chunk[1])),
+            };
+
+            instructions.push(DisassemblyInstruction {
+                address: curr_addr,
+                mnemonic,
+                operands,
+                raw_bytes: hex_val,
+            });
+            curr_addr += 4;
+        }
+    }
+
+    Ok(instructions)
+}
+

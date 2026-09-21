@@ -71,7 +71,7 @@ Oxide Tech IDE uses a multi-tier, local-first architecture engineered for high t
 - **QEMU System Emulation**:
   - Direct launch hooks for ARM Cortex-M and RISC-V targets with GDB server on port `:1234`.
 
-### 2.3 Model Context Protocol (MCP) & Local AI Agent ("Oxide Brain")
+### 2.4 Model Context Protocol (MCP) & Local AI Agent ("Oxide Brain")
 - **MCP Server Hub (`claude_bridge.rs`)**:
   - Manages connections to local and remote MCP servers (`mcp-probe-rs`, `mcp-cargo-gatekeeper`, `mcp-qemu-redox`).
   - Implements stdio and SSE transport protocols.
@@ -82,13 +82,13 @@ Oxide Tech IDE uses a multi-tier, local-first architecture engineered for high t
 - **Wasmtime Sandbox (`sandbox.rs`)**:
   - Sandboxed WebAssembly runtime executing AI-generated snippets safely with CPU cycle and memory limits.
 
-### 2.4 Redox OS & Systems Core
+### 2.5 Redox OS & Systems Core
 - **Redox OS Profile**:
   - Terminal pre-configurations for Redox microkernel compilation, `make qemu`, and filtering `netstack`/`ipcd` log output.
 - **Zero-Copy Serialization Inspector**:
   - Parser for inspecting raw `rkyv` and `postcard` binary streams, mapping byte offsets directly to Rust struct definitions.
 
-### 2.5 CAD, EDA & Visual Forge Convergence
+### 2.6 CAD, EDA & Visual Forge Convergence
 - **Unified `.oxide-workspace` Schema**:
   - Single manifest specifying code paths, `oxide-eda` schematics/PCBs, `Oxide-3d` CAD models, and active agent journal states.
 - **Live Forge Previews (`visual_workstation_ops.rs`)**:

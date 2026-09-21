@@ -120,3 +120,18 @@ export interface SearchOptions {
   exclude_glob?: string;
   max_results?: number;
 }
+
+export interface GitBlameLine {
+  line_number: number;
+  commit_hash: string;
+  author: string;
+  date: string;
+  summary: string;
+}
+
+export interface DisassemblyInstruction {
+  address: number;
+  mnemonic: string;
+  operands: string;
+  raw_bytes: string;
+}

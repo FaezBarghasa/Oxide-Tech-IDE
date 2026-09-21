@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   Play, Pause, Square, ArrowRight, CornerDownRight, ArrowUpRight, 
   RotateCcw, Bug, ChevronRight, ChevronDown, Circle, Trash2, Plus, CornerDownLeft,
   Cpu, Radio, Activity, RefreshCw, Zap, Server
 } from 'lucide-react';
 import { useDebugStore, DebugVariable, DebugEngineType } from '../../state/debugStore';
+import { MemoryHexView } from './MemoryHexView';
+import { DisassemblyView } from './DisassemblyView';
 
 export function DebuggerToolWindow() {
   const {
@@ -46,7 +48,7 @@ export function DebuggerToolWindow() {
     loadPeripheralBlock,
   } = useDebugStore();
 
-  const [activeTab, setActiveTab] = useState<'variables' | 'watches' | 'peripherals' | 'defmt' | 'qemu' | 'hardware' | 'console'>('variables');
+  const [activeTab, setActiveTab] = useState<'variables' | 'watches' | 'peripherals' | 'hex' | 'disassembly' | 'defmt' | 'qemu' | 'hardware' | 'console'>('variables');
   const [expandedVars, setExpandedVars] = useState<Record<string, boolean>>({ config: true, rcc_config: true });
   const [expandedRegs, setExpandedRegs] = useState<Record<string, boolean>>({ MODER: true, CR: true });
   const [newWatchInput, setNewWatchInput] = useState('');
@@ -279,6 +281,8 @@ export function DebuggerToolWindow() {
               { id: 'variables', label: 'Variables' },
               { id: 'watches', label: 'Watches' },
               { id: 'peripherals', label: 'Peripherals (SVD)' },
+              { id: 'hex', label: 'Hex Memory' },
+              { id: 'disassembly', label: 'Disassembly' },
               { id: 'defmt', label: 'defmt RTT' },
               { id: 'qemu', label: 'QEMU Emulator' },
               { id: 'hardware', label: 'Probes / Targets' },
@@ -298,6 +302,16 @@ export function DebuggerToolWindow() {
 
           {/* Tab Content */}
           <div className="flex-1 p-3 overflow-y-auto">
+            {/* Hex Memory Tab */}
+            {activeTab === 'hex' && (
+              <MemoryHexView selectedChip={selectedChip} probeSerial={selectedProbeId || undefined} />
+            )}
+
+            {/* Disassembly Tab */}
+            {activeTab === 'disassembly' && (
+              <DisassemblyView selectedChip={selectedChip} probeSerial={selectedProbeId || undefined} />
+            )}
+
             {/* Variables */}
             {activeTab === 'variables' && (
               <div className="space-y-1">

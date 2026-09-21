@@ -175,6 +175,20 @@ export const tauriCommands = {
     invoke('search_workspace_symbols', { workspacePath, query }),
   searchReplaceInFile: (filePath: string, find: string, replace: string, useRegex: boolean, caseSensitive: boolean): Promise<number> =>
     invoke('search_replace_in_file', { filePath, find, replace, useRegex, caseSensitive }),
+
+  // VCS Phase 1 & 2 extensions
+  vcsGitBlame: (workspacePath: string, filePath: string): Promise<import('../types/oxide').GitBlameLine[]> =>
+    invoke('vcs_git_blame', { workspacePath, filePath }),
+  vcsGitCherryPick: (workspacePath: string, commitHash: string): Promise<string> =>
+    invoke('vcs_git_cherry_pick', { workspacePath, commitHash }),
+
+  // MCU Debugger extensions
+  mcuMemoryWrite: (chip: string, address: number, data: number[], probeSerial?: string): Promise<string> =>
+    invoke('mcu_memory_write', { chip, address, data, probeSerial }),
+  mcuDisassemble: (chip: string, address: number, instructionCount: number, probeSerial?: string): Promise<import('../types/oxide').DisassemblyInstruction[]> =>
+    invoke('mcu_disassemble', { chip, address, instructionCount, probeSerial }),
 };
+
+export const tauriService = tauriCommands;
 
 
