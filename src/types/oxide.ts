@@ -135,3 +135,30 @@ export interface DisassemblyInstruction {
   operands: string;
   raw_bytes: string;
 }
+
+export interface AstNodeDto {
+  name: string;
+  kind: string;
+  line_number: number;
+  end_line_number: number;
+  signature: string;
+  doc_comment?: string;
+  children: AstNodeDto[];
+}
+
+export interface SymbolInfo {
+  name: string;
+  symbol_type: string;
+  line_number: number;
+  end_line_number: number;
+  file_path: string;
+  breadcrumbs: string[];
+  doc_comment?: string;
+}
+
+export interface ContextFile {
+  path: string;
+  content: string;
+  score: number;
+  matched_symbols: string[];
+}

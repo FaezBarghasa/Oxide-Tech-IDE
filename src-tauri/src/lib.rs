@@ -73,6 +73,7 @@ pub fn run() {
             handlers::system::get_git_status,
             // ── RAG / AST Index ──────────────────────────────────────────────────────
             handlers::rag::trigger_workspace_indexing,
+            handlers::rag::get_file_ast_outline,
             handlers::rag::get_predictive_context,
             // ── Git Async ────────────────────────────────────────────────────────────
             handlers::git_async::git_status_async,

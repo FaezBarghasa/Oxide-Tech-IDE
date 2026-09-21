@@ -23,7 +23,16 @@ export const tauriCommands = {
   
   // Predictive RAG & AST Indexing
   triggerWorkspaceIndexing: (workspacePath: string): Promise<string> => invoke('trigger_workspace_indexing', { workspacePath }),
-  getPredictiveContext: (prompt: string): Promise<{ path: string; content: string; score: number }[]> => invoke('get_predictive_context', { prompt }),
+  getFileAstOutline: (filePath: string, content?: string): Promise<import('../types/oxide').AstNodeDto[]> => invoke('get_file_ast_outline', { filePath, content }),
+  getPredictiveContext: (prompt: string): Promise<import('../types/oxide').ContextFile[]> => invoke('get_predictive_context', { prompt }),
+
+  // Local History snapshots
+  localHistoryRecordSnapshot: (filePath: string, content: string, triggerTag: string): Promise<import('../types/oxide').LocalHistoryRevision> =>
+    invoke('local_history_record_snapshot', { filePath, content, triggerTag }),
+  localHistoryGetRevisions: (filePath: string): Promise<import('../types/oxide').LocalHistoryRevision[]> =>
+    invoke('local_history_get_revisions', { filePath }),
+  localHistoryGetRevisionContent: (filePath: string, revisionId: string): Promise<string> =>
+    invoke('local_history_get_revision_content', { filePath, revisionId }),
 
   // Async Git bridge
   gitStatusAsync: (workspacePath: string): Promise<string> => invoke('git_status_async', { workspacePath }),
