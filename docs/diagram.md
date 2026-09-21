@@ -21,6 +21,7 @@ graph TD
             LspHandler["lsp_daemon (rust-analyzer JSON-RPC)"]
             PtyHandler["pty_ops (portable-pty daemon)"]
             FsHandler["fs_watcher (notify recursive)"]
+            SearchHandler["search_ops (ripgrep streaming & replace)"]
             McuHandler["mcu_debugger_ops (probe-rs / QEMU / defmt)"]
             TestHandler["test_runner_ops (cargo test runner)"]
             ForgeHandler["visual_workstation_ops (Slint / Iced / Forge)"]

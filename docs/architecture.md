@@ -18,6 +18,7 @@ Oxide Tech IDE uses a multi-tier, local-first architecture engineered for high t
 |  - lsp_daemon: Persistent rust-analyzer JSON-RPC 2.0 stdio daemon             |
 |  - pty_ops: Full-duplex interactive terminal via portable-pty                 |
 |  - fs_watcher: Debounced recursive file monitor via notify                    |
+|  - search_ops: Streaming ripgrep search & regex find-and-replace              |
 |  - mcu_debugger_ops: probe-rs / OpenOCD / QEMU / defmt RTT / SVD engine      |
 |  - test_runner_ops: Cargo test discovery, execution, & failure parser        |
 |  - visual_workstation_ops: Slint / Iced / Embedded Sim / Playwright diffs     |
@@ -54,7 +55,12 @@ Oxide Tech IDE uses a multi-tier, local-first architecture engineered for high t
 - **Synchronization**: Full document lifecycle tracking (`didOpen`, `didChange`, `didSave`, `didClose`).
 - **Features**: Live autocompletion with snippet expansion, hover documentation, type definitions, code actions (`Alt+Enter`), and parameter/chaining inlay hints.
 
-### 2.2 Embedded Hardware & `r_klipp` Telemetry Engine
+### 2.2 Global Search & Replace Engine (`search_ops.rs`)
+- **Ripgrep Streaming Engine**: JSON-RPC asynchronous process execution with stream-parsed `search:match` events for instant rendering.
+- **AST Symbol Search**: Pattern-targeted extraction of structs, enums, traits, and functions across the workspace.
+- **Find and Replace**: Regexp substitution and whole-word matching across workspace buffers.
+
+### 2.3 Embedded Hardware & `r_klipp` Telemetry Engine
 - **Hardware Debug Bridge (`mcu_debugger_ops.rs`)**:
   - `probe-rs` SWD/JTAG link for direct flash programming and hardware breakpoints.
   - `defmt` RTT decoder parsing deferred logging directly from target RAM ring-buffers.
