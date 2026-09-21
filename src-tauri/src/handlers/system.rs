@@ -25,11 +25,9 @@ pub fn get_system_stats() -> Result<serde_json::Value, String> {
     let mut process_rss_mb = 0;
     if let Ok(statm) = std::fs::read_to_string("/proc/self/statm") {
         let parts: Vec<&str> = statm.split_whitespace().collect();
-        if parts.len() > 1 {
-            if let Ok(rss_pages) = parts[1].parse::<u64>() {
-                // Page size is typically 4096 bytes (4KB)
-                process_rss_mb = (rss_pages * 4096) / (1024 * 1024);
-            }
+        if let Some(Ok(rss_pages)) = parts.get(1).map(|s| s.parse::<u64>()) {
+            // Page size is typically 4096 bytes (4KB)
+            process_rss_mb = (rss_pages * 4096) / (1024 * 1024);
         }
     }
 

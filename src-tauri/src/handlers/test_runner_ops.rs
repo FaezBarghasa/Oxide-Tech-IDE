@@ -205,6 +205,7 @@ pub async fn run_all_tests_streaming(
 
 /// Invokes `cargo llvm-cov --json` and returns per-file coverage reports.
 /// Frontend uses this to render green/red gutter line bars in Monaco.
+#[allow(clippy::collapsible_if)]
 #[tauri::command]
 pub async fn llvm_cov_report(
     workspace_path: String,

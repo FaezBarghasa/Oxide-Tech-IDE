@@ -112,20 +112,20 @@ impl CompilerGuard {
         }
 
         // 2. Type Mismatch: &str to String
-        if msg_lower.contains("mismatched types") || msg_lower.contains("expected struct") {
-            if msg_lower.contains("string") && msg_lower.contains("&str") {
-                let trimmed = current_line_content.trim_end_matches(';');
-                let replacement = format!("{}.to_string();", trimmed);
-                return HealingSuggestion {
-                    file_path: file_path.to_string(),
-                    line_number,
-                    action_type: HealingActionType::TypeCast(".to_string()".to_string()),
-                    safety_tier: SafetyTier::PreviewRequired,
-                    description: "Convert &str to String via .to_string()".to_string(),
-                    replacement_code: Some(replacement.clone()),
-                    diff_preview: Some(format!("- {}\n+ {}", current_line_content, replacement)),
-                };
-            }
+        if (msg_lower.contains("mismatched types") || msg_lower.contains("expected struct"))
+            && msg_lower.contains("string") && msg_lower.contains("&str")
+        {
+            let trimmed = current_line_content.trim_end_matches(';');
+            let replacement = format!("{}.to_string();", trimmed);
+            return HealingSuggestion {
+                file_path: file_path.to_string(),
+                line_number,
+                action_type: HealingActionType::TypeCast(".to_string()".to_string()),
+                safety_tier: SafetyTier::PreviewRequired,
+                description: "Convert &str to String via .to_string()".to_string(),
+                replacement_code: Some(replacement.clone()),
+                diff_preview: Some(format!("- {}\n+ {}", current_line_content, replacement)),
+            };
         }
 
         // 3. Missing Semicolon

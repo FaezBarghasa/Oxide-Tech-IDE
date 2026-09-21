@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useFileSystemStore } from '../../state/fileSystemStore';
 import { useEditorStore } from '../../state/editorStore';
 import { tauriCommands } from '../../services/tauri';
-import { GitBranch, RefreshCw, Square, CheckCircle2 } from 'lucide-react';
+import { GitCommitEntry } from '../../types/rustrover';
+import { GitBranch, RefreshCw, Square, CheckCircle2, Upload, Archive } from 'lucide-react';
 import { cn } from '../../utils/theme';
 
 interface GitStatusFile {
@@ -20,6 +21,8 @@ export function GitPanel() {
   const [commitMessage, setCommitMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resultMsg, setResultMsg] = useState('');
+  const [activeTab, setActiveTab] = useState<'changes' | 'history'>('changes');
+  const [gitLog, setGitLog] = useState<GitCommitEntry[]>([]);
 
   const refreshGit = async () => {
     setIsLoading(true);
@@ -69,8 +72,16 @@ export function GitPanel() {
     }
   };
 
+  const fetchHistory = async () => {
+    try {
+      const log = await tauriCommands.vcsGitLog(workspaceRoot, 50);
+      setGitLog(log);
+    } catch { /* not a git repo */ }
+  };
+
   useEffect(() => {
     refreshGit();
+    fetchHistory();
   }, [workspaceRoot]);
 
   const handleStage = async (file: GitStatusFile) => {
@@ -130,6 +141,32 @@ export function GitPanel() {
     }
   };
 
+  const handlePush = async () => {
+    setIsLoading(true);
+    try {
+      const msg = await tauriCommands.vcsGitPush(workspaceRoot, 'origin', currentBranch, false);
+      setResultMsg(msg);
+      await fetchHistory();
+    } catch (err) {
+      setResultMsg(`Push failed: ${err}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleStashPush = async () => {
+    setIsLoading(true);
+    try {
+      const msg = await tauriCommands.vcsGitStash(workspaceRoot);
+      setResultMsg(`Stashed: ${msg}`);
+      await refreshGit();
+    } catch (err) {
+      setResultMsg(`Stash failed: ${err}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleViewDiff = async (file: GitStatusFile) => {
     try {
       // For editing/viewing diffs, we can trigger diff mode or open the file content.
@@ -152,16 +189,40 @@ export function GitPanel() {
           <GitBranch className="w-4 h-4 text-ide-keyword" />
           <span>Source Control</span>
         </span>
-        <button
-          onClick={refreshGit}
-          disabled={isLoading}
-          className="text-ide-text hover:text-white transition-colors disabled:opacity-50 cursor-pointer"
-        >
-          <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handlePush} disabled={isLoading} title="Push to origin" className="text-ide-text hover:text-white transition-colors disabled:opacity-50 cursor-pointer">
+            <Upload className="w-3.5 h-3.5" />
+          </button>
+          <button onClick={handleStashPush} disabled={isLoading} title="Stash changes" className="text-ide-text hover:text-white transition-colors disabled:opacity-50 cursor-pointer">
+            <Archive className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => { refreshGit(); fetchHistory(); }}
+            disabled={isLoading}
+            className="text-ide-text hover:text-white transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
+          </button>
+        </div>
       </div>
 
-      {/* Branch Selection */}
+      {/* Tabs: Changes / History */}
+      <div className="flex border-b border-ide-border shrink-0">
+        {(['changes', 'history'] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={cn(
+              'flex-1 text-[10px] uppercase font-bold py-1.5 transition-colors capitalize',
+              activeTab === tab ? 'text-white border-b-2 border-ide-keyword' : 'text-ide-text/50 hover:text-ide-text'
+            )}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Branch Selection (always visible) */}
       <div className="p-3 border-b border-ide-border shrink-0 flex items-center justify-between">
         <span className="text-[10px] text-ide-text/60 font-semibold uppercase">Branch</span>
         <select
@@ -175,6 +236,26 @@ export function GitPanel() {
         </select>
       </div>
 
+      {/* History Tab */}
+      {activeTab === 'history' && (
+        <div className="flex-1 overflow-y-auto divide-y divide-[#232529]">
+          {gitLog.length === 0 ? (
+            <div className="p-4 text-center text-[10px] text-ide-text/40">No commits found</div>
+          ) : gitLog.map((commit) => (
+            <div key={commit.hash} className="px-3 py-2 hover:bg-ide-panel/40 transition-colors">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="font-mono text-[10px] text-ide-keyword">{commit.short_hash}</span>
+                <span className="text-[10px] text-ide-text/50 truncate">{commit.author}</span>
+                <span className="text-[10px] text-ide-text/30 ml-auto shrink-0">{commit.date.substring(0, 10)}</span>
+              </div>
+              <p className="text-[11px] text-white truncate">{commit.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Changes Tab */}
+      {activeTab === 'changes' && <>
       {/* Changes list */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         <span className="text-[10px] uppercase font-bold text-white/50 block">Changes ({gitFiles.length})</span>
@@ -254,6 +335,7 @@ export function GitPanel() {
         </form>
         {resultMsg && <span className="text-[10px] text-ide-text/60 mt-1 leading-normal font-mono">{resultMsg}</span>}
       </div>
+      </> /* end changes tab */}
     </div>
   );
 }
