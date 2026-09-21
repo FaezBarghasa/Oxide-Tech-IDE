@@ -45,7 +45,7 @@ export interface SystemMemoryProfile {
 export interface LocalHistoryRevision {
   id: string;
   file_path: string;
-  timestamp: number;
+  timestamp: string;
   trigger_tag: string;
   content: string;
   byte_size: number;

@@ -520,5 +520,3 @@ export function SettingsModal() {
     </div>
   );
 }
-
-export const SettingsModal = RustRoverSettingsModal;

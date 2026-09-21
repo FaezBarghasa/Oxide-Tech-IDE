@@ -73,8 +73,9 @@ export function LocalHistoryToolWindow() {
     }
   };
 
-  const formatTimestamp = (ts: number) => {
+  const formatTimestamp = (ts: string | number) => {
     const d = new Date(ts);
+    if (isNaN(d.getTime())) return String(ts);
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' ' + d.toLocaleDateString();
   };
 
