@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Code2, Box, Cpu, FileCode, Search, RefreshCw, Layers } from 'lucide-react';
-import { useASTStore } from '../../state/astStore';
 import { useEditorStore } from '../../state/editorStore';
 import { tauriCommands } from '../../services/tauri';
 import { AstNodeDto } from '../../types/oxide';

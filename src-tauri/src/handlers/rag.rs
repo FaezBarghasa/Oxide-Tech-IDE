@@ -63,16 +63,20 @@ impl<'a> RustAstVisitor<'a> {
         }
     }
 
+    #[allow(clippy::collapsible_if)]
     fn extract_doc_comments(attrs: &[syn::Attribute]) -> Option<String> {
         let mut docs = Vec::new();
         for attr in attrs {
             if attr.path().is_ident("doc") {
-                if let syn::Meta::NameValue(meta) = &attr.meta {
-                    if let syn::Expr::Lit(expr_lit) = &meta.value {
-                        if let syn::Lit::Str(lit_str) = &expr_lit.lit {
-                            docs.push(lit_str.value().trim().to_string());
-                        }
-                    }
+                if let syn::Meta::NameValue(syn::MetaNameValue {
+                    value: syn::Expr::Lit(syn::ExprLit {
+                        lit: syn::Lit::Str(lit_str),
+                        ..
+                    }),
+                    ..
+                }) = &attr.meta
+                {
+                    docs.push(lit_str.value().trim().to_string());
                 }
             }
         }
@@ -177,7 +181,7 @@ impl<'a, 'ast> Visit<'ast> for RustAstVisitor<'a> {
             _ => "Self".to_string(),
         };
 
-        let impl_label = if let Some((_, trait_path, _)) = &node.trait_ {
+        let impl_label = if let Some((trait_path, _)) = &node.trait_ {
             let trait_name = trait_path
                 .segments
                 .last()
@@ -194,6 +198,7 @@ impl<'a, 'ast> Visit<'ast> for RustAstVisitor<'a> {
     }
 }
 
+#[allow(clippy::collapsible_if)]
 pub fn parse_file_ast_outline(content: &str, file_path: &str) -> Vec<AstNodeDto> {
     if file_path.ends_with(".rs") {
         if let Ok(syntax_file) = syn::parse_file(content) {
@@ -258,7 +263,7 @@ pub fn parse_file_ast_outline(content: &str, file_path: &str) -> Vec<AstNodeDto>
                                 .unwrap_or_else(|| "Self".to_string()),
                             _ => "Self".to_string(),
                         };
-                        let signature = if let Some((_, trait_path, _)) = &i.trait_ {
+                        let signature = if let Some((trait_path, _)) = &i.trait_ {
                             let trait_name = trait_path
                                 .segments
                                 .last()
