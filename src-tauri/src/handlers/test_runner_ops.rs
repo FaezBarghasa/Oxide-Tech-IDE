@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::path::Path;
+use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
+use tauri::{AppHandle, Emitter};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkspaceTestItem {
@@ -21,6 +23,16 @@ pub struct TestRunResult {
     pub stdout: String,
     pub stderr: String,
     pub failure_message: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CoverageFileReport {
+    pub file_path: String,
+    pub covered_percent: f64,
+    pub covered_lines: u32,
+    pub total_lines: u32,
+    pub covered_line_numbers: Vec<u32>,
+    pub uncovered_line_numbers: Vec<u32>,
 }
 
 #[tauri::command]
@@ -105,4 +117,179 @@ pub async fn run_single_test(
         stderr,
         failure_message,
     })
+}
+
+/// Streaming test runner: runs all cargo tests with `--message-format=json`
+/// and emits `test:event` Tauri events in real-time.
+/// Each event payload: `{ test_id: string, event: "started"|"passed"|"failed", duration_ms?: number, message?: string }`
+#[tauri::command]
+pub async fn run_all_tests_streaming(
+    app: AppHandle,
+    workspace_path: String,
+) -> Result<u32, String> {
+    let path = Path::new(&workspace_path);
+
+    let mut child = Command::new("cargo")
+        .args(["test", "--message-format=json", "--", "--nocapture"])
+        .current_dir(path)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .map_err(|e| format!("Failed to spawn cargo test: {}", e))?;
+
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| "Failed to capture test stdout".to_string())?;
+
+    let mut reader = BufReader::new(stdout).lines();
+    let mut total_tests = 0u32;
+
+    while let Ok(Some(line)) = reader.next_line().await {
+        if let Ok(msg) = serde_json::from_str::<serde_json::Value>(&line) {
+            let reason = msg.get("reason").and_then(|v| v.as_str()).unwrap_or("");
+
+            match reason {
+                "test-started" => {
+                    let test_name = msg
+                        .get("test")
+                        .and_then(|t| t.get("name"))
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    let _ = app.emit("test:event", serde_json::json!({
+                        "test_id": test_name,
+                        "event": "started"
+                    }));
+                }
+                "test-ok" => {
+                    let test_name = msg
+                        .get("test")
+                        .and_then(|t| t.get("name"))
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    let exec_time = msg.get("exec_time").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                    total_tests += 1;
+                    let _ = app.emit("test:event", serde_json::json!({
+                        "test_id": test_name,
+                        "event": "passed",
+                        "duration_ms": (exec_time * 1000.0) as u64
+                    }));
+                }
+                "test-failed" => {
+                    let test_name = msg
+                        .get("test")
+                        .and_then(|t| t.get("name"))
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    let exec_time = msg.get("exec_time").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                    let stdout_text = msg.get("stdout").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                    total_tests += 1;
+                    let _ = app.emit("test:event", serde_json::json!({
+                        "test_id": test_name,
+                        "event": "failed",
+                        "duration_ms": (exec_time * 1000.0) as u64,
+                        "message": stdout_text
+                    }));
+                }
+                _ => {}
+            }
+        }
+    }
+
+    let _ = child.wait().await;
+    Ok(total_tests)
+}
+
+/// Invokes `cargo llvm-cov --json` and returns per-file coverage reports.
+/// Frontend uses this to render green/red gutter line bars in Monaco.
+#[tauri::command]
+pub async fn llvm_cov_report(
+    workspace_path: String,
+) -> Result<Vec<CoverageFileReport>, String> {
+    let path = Path::new(&workspace_path);
+
+    let output = Command::new("cargo")
+        .args(["llvm-cov", "--json", "--ignore-filename-regex=target/"])
+        .current_dir(path)
+        .output()
+        .await
+        .map_err(|e| format!(
+            "Failed to run cargo llvm-cov: {}. Install with: cargo install cargo-llvm-cov",
+            e
+        ))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("cargo llvm-cov failed: {}", stderr));
+    }
+
+    let json_str = String::from_utf8_lossy(&output.stdout);
+    let coverage: serde_json::Value = serde_json::from_str(&json_str)
+        .map_err(|e| format!("Failed to parse coverage JSON: {}", e))?;
+
+    let mut reports = Vec::new();
+
+    if let Some(data_array) = coverage.get("data").and_then(|d| d.as_array()) {
+        for data in data_array {
+            if let Some(files) = data.get("files").and_then(|f| f.as_array()) {
+                for file in files {
+                    let filename = file
+                        .get("filename")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string();
+
+                    if filename.is_empty() {
+                        continue;
+                    }
+
+                    let mut covered_lines = 0u32;
+                    let mut total_lines = 0u32;
+                    let mut covered_line_numbers = Vec::new();
+                    let mut uncovered_line_numbers = Vec::new();
+
+                    if let Some(segments) = file.get("segments").and_then(|s| s.as_array()) {
+                        let mut seen_lines = std::collections::HashSet::new();
+                        for seg in segments {
+                            if let (Some(line), Some(count), Some(has_count)) = (
+                                seg.get(0).and_then(|v| v.as_u64()),
+                                seg.get(2).and_then(|v| v.as_u64()),
+                                seg.get(3).and_then(|v| v.as_bool()),
+                            ) {
+                                if has_count && seen_lines.insert(line as u32) {
+                                    total_lines += 1;
+                                    if count > 0 {
+                                        covered_lines += 1;
+                                        covered_line_numbers.push(line as u32);
+                                    } else {
+                                        uncovered_line_numbers.push(line as u32);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    let covered_percent = if total_lines > 0 {
+                        (covered_lines as f64 / total_lines as f64) * 100.0
+                    } else {
+                        0.0
+                    };
+
+                    reports.push(CoverageFileReport {
+                        file_path: filename,
+                        covered_percent,
+                        covered_lines,
+                        total_lines,
+                        covered_line_numbers,
+                        uncovered_line_numbers,
+                    });
+                }
+            }
+        }
+    }
+
+    Ok(reports)
 }

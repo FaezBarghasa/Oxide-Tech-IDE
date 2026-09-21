@@ -491,3 +491,141 @@ pub async fn lsp_status() -> Result<bool, String> {
     let guard = lsp_instance().lock().await;
     Ok(guard.is_some())
 }
+
+#[tauri::command]
+pub async fn lsp_references(
+    path: String,
+    line: u32,
+    character: u32,
+) -> Result<serde_json::Value, String> {
+    let guard = lsp_instance().lock().await;
+    let state = guard
+        .as_ref()
+        .ok_or_else(|| "LSP not started".to_string())?;
+
+    let id = state.next_id.fetch_add(1, Ordering::SeqCst);
+    let uri = to_file_uri(&path);
+    let req = json!({
+        "jsonrpc": "2.0",
+        "id": id,
+        "method": "textDocument/references",
+        "params": {
+            "textDocument": { "uri": uri },
+            "position": { "line": line, "character": character },
+            "context": { "includeDeclaration": true }
+        }
+    });
+
+    let (tx, rx) = oneshot::channel();
+    {
+        let mut map = state.pending_requests.lock().await;
+        map.insert(id, tx);
+    }
+    send_raw_message(&state.stdin, &req).await?;
+
+    match timeout(Duration::from_secs(8), rx).await {
+        Ok(Ok(resp)) => Ok(resp.get("result").cloned().unwrap_or(json!([]))),
+        _ => Ok(json!([])),
+    }
+}
+
+#[tauri::command]
+pub async fn lsp_rename(
+    path: String,
+    line: u32,
+    character: u32,
+    new_name: String,
+) -> Result<serde_json::Value, String> {
+    let guard = lsp_instance().lock().await;
+    let state = guard
+        .as_ref()
+        .ok_or_else(|| "LSP not started".to_string())?;
+
+    let id = state.next_id.fetch_add(1, Ordering::SeqCst);
+    let uri = to_file_uri(&path);
+    let req = json!({
+        "jsonrpc": "2.0",
+        "id": id,
+        "method": "textDocument/rename",
+        "params": {
+            "textDocument": { "uri": uri },
+            "position": { "line": line, "character": character },
+            "newName": new_name
+        }
+    });
+
+    let (tx, rx) = oneshot::channel();
+    {
+        let mut map = state.pending_requests.lock().await;
+        map.insert(id, tx);
+    }
+    send_raw_message(&state.stdin, &req).await?;
+
+    match timeout(Duration::from_secs(8), rx).await {
+        Ok(Ok(resp)) => Ok(resp.get("result").cloned().unwrap_or(json!(null))),
+        _ => Ok(json!(null)),
+    }
+}
+
+#[tauri::command]
+pub async fn lsp_workspace_symbols(query: String) -> Result<serde_json::Value, String> {
+    let guard = lsp_instance().lock().await;
+    let state = guard
+        .as_ref()
+        .ok_or_else(|| "LSP not started".to_string())?;
+
+    let id = state.next_id.fetch_add(1, Ordering::SeqCst);
+    let req = json!({
+        "jsonrpc": "2.0",
+        "id": id,
+        "method": "workspace/symbol",
+        "params": { "query": query }
+    });
+
+    let (tx, rx) = oneshot::channel();
+    {
+        let mut map = state.pending_requests.lock().await;
+        map.insert(id, tx);
+    }
+    send_raw_message(&state.stdin, &req).await?;
+
+    match timeout(Duration::from_secs(6), rx).await {
+        Ok(Ok(resp)) => Ok(resp.get("result").cloned().unwrap_or(json!([]))),
+        _ => Ok(json!([])),
+    }
+}
+
+#[tauri::command]
+pub async fn lsp_format_document(path: String) -> Result<serde_json::Value, String> {
+    let guard = lsp_instance().lock().await;
+    let state = guard
+        .as_ref()
+        .ok_or_else(|| "LSP not started".to_string())?;
+
+    let id = state.next_id.fetch_add(1, Ordering::SeqCst);
+    let uri = to_file_uri(&path);
+    let req = json!({
+        "jsonrpc": "2.0",
+        "id": id,
+        "method": "textDocument/formatting",
+        "params": {
+            "textDocument": { "uri": uri },
+            "options": {
+                "tabSize": 4,
+                "insertSpaces": true
+            }
+        }
+    });
+
+    let (tx, rx) = oneshot::channel();
+    {
+        let mut map = state.pending_requests.lock().await;
+        map.insert(id, tx);
+    }
+    send_raw_message(&state.stdin, &req).await?;
+
+    match timeout(Duration::from_secs(10), rx).await {
+        Ok(Ok(resp)) => Ok(resp.get("result").cloned().unwrap_or(json!([]))),
+        _ => Ok(json!([])),
+    }
+}

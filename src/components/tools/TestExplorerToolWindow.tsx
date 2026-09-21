@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Play, RotateCw, CheckCircle, XCircle, Clock, Terminal } from 'lucide-react';
+import { listen } from '@tauri-apps/api/event';
+import { Play, RotateCw, CheckCircle, XCircle, Clock, Terminal, Zap } from 'lucide-react';
 import { useFileSystemStore } from '../../state/fileSystemStore';
 import { tauriCommands } from '../../services/tauri';
-import { WorkspaceTestItem, TestRunResult } from '../../types/rustrover';
+import { WorkspaceTestItem, TestRunResult, TestStreamEvent } from '../../types/rustrover';
 
 export function TestExplorerToolWindow() {
   const workspaceRoot = useFileSystemStore((s) => s.workspaceRoot);
@@ -79,6 +80,36 @@ export function TestExplorerToolWindow() {
     setIsRunningAll(false);
   };
 
+  const handleRunAllStreaming = async () => {
+    if (!workspaceRoot) return;
+    setIsRunningAll(true);
+
+    // Reset all to 'running' state first
+    setTests((prev) => prev.map((t) => ({ ...t, status: 'running' as const })));
+
+    // Subscribe to real-time events
+    const unlisten = await listen<TestStreamEvent>('test:event', (event) => {
+      const payload = event.payload;
+      setTests((prev) =>
+        prev.map((t) => {
+          if (t.id === payload.test_id) {
+            if (payload.event === 'started') return { ...t, status: 'running' as const };
+            if (payload.event === 'passed') return { ...t, status: 'passed' as const, duration_ms: payload.duration_ms };
+            if (payload.event === 'failed') return { ...t, status: 'failed' as const, duration_ms: payload.duration_ms, output: payload.message };
+          }
+          return t;
+        })
+      );
+    });
+
+    try {
+      await tauriCommands.runAllTestsStreaming(workspaceRoot);
+    } finally {
+      unlisten();
+      setIsRunningAll(false);
+    }
+  };
+
   const filteredTests = tests.filter(
     (t) =>
       t.name.toLowerCase().includes(filterText.toLowerCase()) ||
@@ -98,10 +129,18 @@ export function TestExplorerToolWindow() {
             <button
               onClick={handleRunAllTests}
               disabled={isRunningAll || isDiscovering || tests.length === 0}
-              title="Run All Tests"
+              title="Run All Tests (Sequential)"
               className="p-1 rounded hover:bg-[#2e436e] text-[#59a869] disabled:opacity-50 transition-colors"
             >
               <Play size={14} className="fill-current" />
+            </button>
+            <button
+              onClick={handleRunAllStreaming}
+              disabled={isRunningAll || isDiscovering || tests.length === 0}
+              title="Run All Tests (Streaming — real-time events)"
+              className="p-1 rounded hover:bg-[#2e436e] text-[#e5c07b] disabled:opacity-50 transition-colors"
+            >
+              <Zap size={14} className="fill-current" />
             </button>
             <button
               onClick={discoverTests}
@@ -114,6 +153,7 @@ export function TestExplorerToolWindow() {
               <RotateCw size={13} />
             </button>
           </div>
+
 
           {/* Status summary badges */}
           <div className="flex items-center gap-2 text-[11px]">

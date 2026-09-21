@@ -128,11 +128,45 @@ export const tauriCommands = {
   localHistoryGetRevisionContent: (filePath: string, revisionId: string): Promise<string> =>
     invoke('local_history_get_revision_content', { filePath, revisionId }),
 
-  // Cargo Test Runner Engine
+  // Cargo Test Runner Engine (Phase 4 complete)
   discoverWorkspaceTests: (workspacePath: string): Promise<import('../types/rustrover').WorkspaceTestItem[]> =>
     invoke('discover_workspace_tests', { workspacePath }),
   runSingleTest: (workspacePath: string, testId: string): Promise<import('../types/rustrover').TestRunResult> =>
     invoke('run_single_test', { workspacePath, testId }),
+  runAllTestsStreaming: (workspacePath: string): Promise<number> =>
+    invoke('run_all_tests_streaming', { workspacePath }),
+  llvmCovReport: (workspacePath: string): Promise<import('../types/rustrover').CoverageFileReport[]> =>
+    invoke('llvm_cov_report', { workspacePath }),
+
+  // LSP Phase 2 completions — references, rename, workspace symbols, format
+  lspReferences: (path: string, line: number, character: number): Promise<unknown> =>
+    invoke('lsp_references', { path, line, character }),
+  lspRename: (path: string, line: number, character: number, newName: string): Promise<unknown> =>
+    invoke('lsp_rename', { path, line, character, newName }),
+  lspWorkspaceSymbols: (query: string): Promise<unknown> =>
+    invoke('lsp_workspace_symbols', { query }),
+  lspFormatDocument: (path: string): Promise<unknown> =>
+    invoke('lsp_format_document', { path }),
+
+  // MCU Phase 5 completions — halt, reset, memory read
+  mcuHalt: (chip: string, probeSerial?: string): Promise<string> =>
+    invoke('mcu_halt', { chip, probeSerial }),
+  mcuReset: (chip: string, haltAfterReset: boolean, probeSerial?: string): Promise<string> =>
+    invoke('mcu_reset', { chip, haltAfterReset, probeSerial }),
+  mcuMemoryRead: (chip: string, address: number, byteCount: number, probeSerial?: string): Promise<number[]> =>
+    invoke('mcu_memory_read', { chip, address, byteCount, probeSerial }),
+
+  // VCS Phase 6 completions — full diff, push, stash, log
+  vcsGitDiffContent: (filePath: string, workspacePath: string, staged: boolean): Promise<string> =>
+    invoke('vcs_git_diff_content', { filePath, workspacePath, staged }),
+  vcsGitPush: (workspacePath: string, remote: string, branch: string, force: boolean): Promise<string> =>
+    invoke('vcs_git_push', { workspacePath, remote, branch, force }),
+  vcsGitStash: (workspacePath: string, message?: string): Promise<string> =>
+    invoke('vcs_git_stash', { workspacePath, message }),
+  vcsGitStashPop: (workspacePath: string): Promise<string> =>
+    invoke('vcs_git_stash_pop', { workspacePath }),
+  vcsGitLog: (workspacePath: string, limit: number): Promise<import('../types/rustrover').GitCommitEntry[]> =>
+    invoke('vcs_git_log', { workspacePath, limit }),
 };
 
 

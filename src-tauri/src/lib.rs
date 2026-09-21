@@ -26,6 +26,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(handlers::rag::ASTIndexState::new())
         .invoke_handler(tauri::generate_handler![
+            // ── Core / AI ────────────────────────────────────────────────────────────
             handlers::core_ops::discover_cuda_devices,
             handlers::core_ops::parse_source_symbols,
             handlers::core_ops::slice_differential_context,
@@ -48,6 +49,7 @@ pub fn run() {
             handlers::core_ops::get_cortex_device_capabilities,
             handlers::core_ops::generate_cortex_embedding,
             handlers::core_ops::search_cortex_knowledge_graph,
+            // ── File System ──────────────────────────────────────────────────────────
             handlers::file_ops::read_workspace_file,
             handlers::file_ops::save_workspace_file,
             handlers::file_ops::list_directory_tree,
@@ -58,33 +60,47 @@ pub fn run() {
             handlers::file_ops::create_dir,
             handlers::file_ops::delete_file,
             handlers::file_ops::rename_file,
+            // ── Cargo & Build ────────────────────────────────────────────────────────
             handlers::process::spawn_cargo_check,
             handlers::process::spawn_cargo_clippy,
             handlers::process::execute_terminal_command,
+            handlers::cargo_ops::cargo_get_workspace_metadata,
+            handlers::cargo_ops::rust_expand_macro,
+            handlers::cargo_ops::cargo_add_dependency,
+            // ── System ───────────────────────────────────────────────────────────────
             handlers::system::get_system_stats,
             handlers::system::get_git_status,
+            // ── RAG / AST Index ──────────────────────────────────────────────────────
             handlers::rag::trigger_workspace_indexing,
             handlers::rag::get_predictive_context,
+            // ── Git Async ────────────────────────────────────────────────────────────
             handlers::git_async::git_status_async,
             handlers::git_async::git_add_async,
             handlers::git_async::git_commit_async,
             handlers::git_async::git_create_pr_async,
+            // ── VCS (Phase 6 complete) ────────────────────────────────────────────────
+            handlers::vcs_ops::vcs_get_detailed_status,
+            handlers::vcs_ops::vcs_get_line_diffs,
+            handlers::vcs_ops::vcs_git_diff_content,
+            handlers::vcs_ops::vcs_git_push,
+            handlers::vcs_ops::vcs_git_stash,
+            handlers::vcs_ops::vcs_git_stash_pop,
+            handlers::vcs_ops::vcs_git_log,
+            // ── Hardware / Serial / MQTT ─────────────────────────────────────────────
             handlers::hardware_daemon::connect_serial_port_daemon,
             handlers::hardware_daemon::connect_mqtt_daemon,
             handlers::hardware_daemon::publish_mqtt_message_daemon,
             handlers::hardware_daemon::get_hardware_logs,
             handlers::hardware_daemon::clear_hardware_buffers_daemon,
             handlers::hardware_daemon::disconnect_hardware_daemons,
+            // ── HTTP Proxy ────────────────────────────────────────────────────────────
             handlers::http_proxy::proxy_request,
-            handlers::cargo_ops::cargo_get_workspace_metadata,
-            handlers::cargo_ops::rust_expand_macro,
-            handlers::cargo_ops::cargo_add_dependency,
-            handlers::vcs_ops::vcs_get_detailed_status,
-            handlers::vcs_ops::vcs_get_line_diffs,
+            // ── Settings ─────────────────────────────────────────────────────────────
             handlers::settings_storage::save_ide_layout,
             handlers::settings_storage::load_ide_layout,
             handlers::settings_storage::save_user_keymap,
             handlers::settings_storage::load_user_keymap,
+            // ── Visual Workstation (Playwright / Slint / Iced) ───────────────────────
             handlers::visual_workstation_ops::playwright_discover_tests,
             handlers::visual_workstation_ops::playwright_run_test,
             handlers::visual_workstation_ops::playwright_compare_visual_baselines,
@@ -95,6 +111,7 @@ pub fn run() {
             handlers::visual_workstation_ops::embedded_sim_inject_input,
             handlers::visual_workstation_ops::iced_fetch_widget_tree,
             handlers::visual_workstation_ops::iced_trigger_hot_reload,
+            // ── MCU Debugger / Embedded (Phase 5 complete) ───────────────────────────
             handlers::mcu_debugger_ops::mcu_discover_probes,
             handlers::mcu_debugger_ops::mcu_get_supported_chips,
             handlers::mcu_debugger_ops::mcu_flash_firmware,
@@ -104,10 +121,15 @@ pub fn run() {
             handlers::mcu_debugger_ops::run_klipp_workflow,
             handlers::mcu_debugger_ops::mcp_get_server_configs,
             handlers::mcu_debugger_ops::mcp_toggle_server,
+            handlers::mcu_debugger_ops::mcu_halt,
+            handlers::mcu_debugger_ops::mcu_reset,
+            handlers::mcu_debugger_ops::mcu_memory_read,
+            // ── PTY / Terminal ────────────────────────────────────────────────────────
             handlers::pty_ops::pty_spawn,
             handlers::pty_ops::pty_write,
             handlers::pty_ops::pty_resize,
             handlers::pty_ops::pty_kill,
+            // ── LSP Daemon (Phase 2 complete) ─────────────────────────────────────────
             handlers::lsp_daemon::lsp_start,
             handlers::lsp_daemon::lsp_did_open,
             handlers::lsp_daemon::lsp_did_change,
@@ -119,15 +141,23 @@ pub fn run() {
             handlers::lsp_daemon::lsp_inlay_hints,
             handlers::lsp_daemon::lsp_code_actions,
             handlers::lsp_daemon::lsp_status,
+            handlers::lsp_daemon::lsp_references,
+            handlers::lsp_daemon::lsp_rename,
+            handlers::lsp_daemon::lsp_workspace_symbols,
+            handlers::lsp_daemon::lsp_format_document,
+            // ── FS Watcher ────────────────────────────────────────────────────────────
             handlers::fs_watcher::fs_watch_start,
             handlers::fs_watcher::fs_watch_stop,
+            // ── Local History ─────────────────────────────────────────────────────────
             handlers::local_history_ops::local_history_record_snapshot,
             handlers::local_history_ops::local_history_get_revisions,
             handlers::local_history_ops::local_history_get_revision_content,
+            // ── Test Runner (Phase 4 complete) ────────────────────────────────────────
             handlers::test_runner_ops::discover_workspace_tests,
             handlers::test_runner_ops::run_single_test,
+            handlers::test_runner_ops::run_all_tests_streaming,
+            handlers::test_runner_ops::llvm_cov_report,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-

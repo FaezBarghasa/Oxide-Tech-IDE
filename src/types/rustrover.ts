@@ -70,3 +70,29 @@ export interface TestRunResult {
   failure_message?: string;
 }
 
+/** Phase 4: llvm-cov per-file coverage report */
+export interface CoverageFileReport {
+  file_path: string;
+  covered_percent: number;
+  covered_lines: number;
+  total_lines: number;
+  covered_line_numbers: number[];
+  uncovered_line_numbers: number[];
+}
+
+/** Phase 6: structured git log entry */
+export interface GitCommitEntry {
+  hash: string;
+  short_hash: string;
+  author: string;
+  date: string;
+  message: string;
+}
+
+/** Phase 4: real-time test event from run_all_tests_streaming */
+export interface TestStreamEvent {
+  test_id: string;
+  event: 'started' | 'passed' | 'failed';
+  duration_ms?: number;
+  message?: string;
+}

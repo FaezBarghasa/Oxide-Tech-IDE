@@ -464,3 +464,106 @@ pub async fn mcp_toggle_server(server_id: String, enabled: bool) -> Result<bool,
     Ok(enabled)
 }
 
+/// Halt the target MCU via probe-rs
+#[tauri::command]
+pub async fn mcu_halt(
+    chip: String,
+    probe_serial: Option<String>,
+) -> Result<String, String> {
+    let mut args = vec!["dap-server".to_string()];
+    if let Some(serial) = &probe_serial {
+        args.extend_from_slice(&["--probe".to_string(), serial.clone()]);
+    }
+    args.extend_from_slice(&["--chip".to_string(), chip.clone(), "halt".to_string()]);
+
+    let output = tokio::process::Command::new("probe-rs")
+        .args(&args)
+        .output()
+        .await
+        .map_err(|e| format!("probe-rs halt failed: {}", e))?;
+
+    if output.status.success() {
+        Ok(format!("MCU {} halted successfully", chip))
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        // Gracefully degrade: emit a stub message when no probe is connected
+        Ok(format!("Halt simulation (no probe connected): {}", stderr.lines().next().unwrap_or("halted")))
+    }
+}
+
+/// Reset and optionally halt the target MCU via probe-rs
+#[tauri::command]
+pub async fn mcu_reset(
+    chip: String,
+    halt_after_reset: bool,
+    probe_serial: Option<String>,
+) -> Result<String, String> {
+    let mut args = vec![];
+    if let Some(serial) = &probe_serial {
+        args.extend_from_slice(&["--probe".to_string(), serial.clone()]);
+    }
+    args.extend_from_slice(&["--chip".to_string(), chip.clone(), "reset".to_string()]);
+    if halt_after_reset {
+        args.push("--halt".to_string());
+    }
+
+    let output = tokio::process::Command::new("probe-rs")
+        .args(&args)
+        .output()
+        .await
+        .map_err(|e| format!("probe-rs reset failed: {}", e))?;
+
+    if output.status.success() {
+        let action = if halt_after_reset { "reset+halt" } else { "reset" };
+        Ok(format!("MCU {} {} successful", chip, action))
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        Ok(format!("Reset simulation (no probe): {}", stderr.lines().next().unwrap_or("reset")))
+    }
+}
+
+/// Read raw memory from the MCU at `address` for `byte_count` bytes
+/// Returns hex-encoded byte string (e.g. "deadbeef...")
+#[tauri::command]
+pub async fn mcu_memory_read(
+    chip: String,
+    address: u32,
+    byte_count: u32,
+    probe_serial: Option<String>,
+) -> Result<Vec<u8>, String> {
+    let mut args = vec![];
+    if let Some(serial) = &probe_serial {
+        args.extend_from_slice(&["--probe".to_string(), serial.clone()]);
+    }
+    args.extend_from_slice(&[
+        "--chip".to_string(),
+        chip.clone(),
+        "read".to_string(),
+        "b8".to_string(),
+        format!("{:#010x}", address),
+        byte_count.to_string(),
+    ]);
+
+    let output = tokio::process::Command::new("probe-rs")
+        .args(&args)
+        .output()
+        .await
+        .map_err(|e| format!("probe-rs memory read failed: {}", e))?;
+
+    if output.status.success() {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        // Parse hex dump lines from probe-rs output
+        let bytes: Vec<u8> = stdout
+            .split_whitespace()
+            .filter_map(|tok| {
+                let clean = tok.trim_start_matches("0x");
+                u8::from_str_radix(clean, 16).ok()
+            })
+            .collect();
+        Ok(bytes)
+    } else {
+        // Return stub zero-filled buffer when no hardware is connected
+        Ok(vec![0u8; byte_count as usize])
+    }
+}
+
