@@ -119,6 +119,12 @@ export function StatusBar() {
         >
           <Bell className="w-3 h-3" />
         </button>
+
+        {/* Memanto Memory Status */}
+        <div className="flex items-center space-x-1 px-1.5 py-0.5 rounded bg-[#2b2d30]/60 border border-[#393b40]/40 text-[#98c379] font-mono text-[10px]" title="Memanto Context & Semantic Memory Fabric Active">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#98c379]" />
+          <span>Memanto: Active</span>
+        </div>
       </div>
 
       {/* Right Section: Line:Col, Indent, Encoding, Line Endings, Memory Gauge */}

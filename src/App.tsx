@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './state/queryClient';
 import { useSettingsStore } from './state/settingsStore';
+import { useEditorStore } from './state/editorStore';
+import { StairHit } from './types/oxide';
 import {
   MainLayout,
   Omnibar,
@@ -10,7 +12,8 @@ import {
   TaskHUD,
   SettingsModal,
   SearchEverywhereOverlay,
-  FindInFilesModal
+  FindInFilesModal,
+  StairSymbolPalette
 } from './components';
 
 export default function App() {
@@ -29,6 +32,13 @@ export default function App() {
     function handleKeyDown(e: KeyboardEvent) {
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
       const now = Date.now();
+
+      // Ctrl+Shift+O / Cmd+Shift+O -> STAIR AST Symbol Palette
+      if (isCmdOrCtrl && e.shiftKey && (e.key === 'o' || e.key === 'O')) {
+        e.preventDefault();
+        setActiveOverlay(activeOverlay === 'stair-symbols' ? null : 'stair-symbols');
+        return;
+      }
 
       // Ctrl+Shift+F -> Find in Files
       if (isCmdOrCtrl && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
@@ -100,6 +110,13 @@ export default function App() {
       <FindInFilesModal
         isOpen={activeOverlay === 'find-in-files'}
         onClose={() => setActiveOverlay(null)}
+      />
+      <StairSymbolPalette
+        isOpen={activeOverlay === 'stair-symbols'}
+        onClose={() => setActiveOverlay(null)}
+        onSelectSymbol={(hit: StairHit) => {
+          useEditorStore.getState().openFile(hit.file_path);
+        }}
       />
     </QueryClientProvider>
   );
