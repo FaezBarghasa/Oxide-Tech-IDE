@@ -9,7 +9,7 @@ import { setupMonacoRust } from '../../services/monaco';
 import { initializeLspClient, syncDocumentOpen, syncDocumentChange } from '../../services/lspClient';
 import { tauriCommands } from '../../services/tauri';
 import { EditorTabs } from './EditorTabs';
-import { Breadcrumbs } from '../layout/Breadcrumbs';
+import { StairBreadcrumbs } from './StairBreadcrumbs';
 import { AIFloatingPrompt } from '../ai/AIFloatingPrompt';
 import { Activity, Play, Bug, Sparkles } from 'lucide-react';
 
@@ -19,6 +19,7 @@ export function CodeEditor() {
   const decorationsCollectionRef = useRef<monaco.editor.IEditorDecorationsCollection | null>(null);
   const breakpointsRef = useRef<Set<number>>(new Set());
   const docVersionRef = useRef<number>(1);
+  const [currentLineNumber, setCurrentLineNumber] = useState<number>(1);
 
   const { currentFile, files, updateFileContent } = useEditorStore();
   const fileData = currentFile ? files.get(currentFile) : null;
@@ -111,6 +112,10 @@ export function CodeEditor() {
             }
           }
         },
+      });
+
+      editorRef.current.onDidChangeCursorPosition((e) => {
+        setCurrentLineNumber(e.position.lineNumber);
       });
 
       // Bind Cmd+L / Ctrl+L to AI Prompt
@@ -251,7 +256,16 @@ export function CodeEditor() {
       {!zenMode && (
         <>
           <EditorTabs />
-          <Breadcrumbs />
+          <StairBreadcrumbs
+            currentLine={currentLineNumber}
+            onSelectNode={(line) => {
+              if (editorRef.current) {
+                editorRef.current.revealLineInCenter(line);
+                editorRef.current.setPosition({ lineNumber: line, column: 1 });
+                editorRef.current.focus();
+              }
+            }}
+          />
         </>
       )}
       {!currentFile ? (

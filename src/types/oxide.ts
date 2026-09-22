@@ -162,3 +162,82 @@ export interface ContextFile {
   score: number;
   matched_symbols: string[];
 }
+
+/** STAIR (Structure-Aware Information Retriever) Hierarchy Types */
+export interface StairHit {
+  breadcrumbs: string[];
+  leaf_symbol: string;
+  signature?: string;
+  file_path: string;
+  start_line: number;
+  end_line: number;
+  code_body: string;
+  confidence: number;
+  macro_parent?: string;
+}
+
+/** GraphRAG Knowledge Graph & Blast Radius Types */
+export interface SubgraphContext {
+  target_symbol: string;
+  symbol_kind: string;
+  file_path: string;
+  signature?: string;
+  callers: string[];
+  callees: string[];
+  doc_references: string[];
+}
+
+export interface BlastRadiusSummary {
+  symbol: string;
+  file_path: string;
+  inbound_callers_count: number;
+  outbound_callees_count: number;
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  details: SubgraphContext;
+}
+
+/** Memanto Typed Semantic Memory Types */
+export type MemoryKindType =
+  | 'instruction'
+  | 'decision'
+  | 'fact'
+  | 'goal'
+  | 'commitment'
+  | 'preference'
+  | 'relationship'
+  | 'context'
+  | 'event'
+  | 'learning'
+  | 'observation'
+  | 'artifact'
+  | 'error';
+
+export interface MemoryRecordItem {
+  id: string;
+  project_id: string;
+  session_id?: string;
+  kind: MemoryKindType;
+  title: string;
+  content: string;
+  tags: string[];
+  symbol_ref?: string;
+  status: 'active' | 'superseded' | 'expired' | 'archived';
+  confidence: number;
+  created_at: string;
+}
+
+export interface MemoryConflictItem {
+  record_a: MemoryRecordItem;
+  record_b: MemoryRecordItem;
+  conflict_reason: string;
+  similarity_score: number;
+}
+
+export interface TokenBudgetStatus {
+  total_used_tokens: number;
+  budget_ceiling: number;
+  cached_tokens: number;
+  reasoning_tokens: number;
+  estimated_cost_usd: number;
+  cache_hit_rate: number;
+}
