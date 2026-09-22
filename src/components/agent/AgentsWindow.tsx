@@ -8,7 +8,6 @@ import {
   Container,
   Terminal,
   Cpu,
-  CheckCircle2,
   AlertTriangle,
   RotateCw,
   Plus,
