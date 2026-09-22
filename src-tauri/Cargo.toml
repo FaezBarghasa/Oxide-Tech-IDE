@@ -9,6 +9,7 @@ edition = "2024"
 members = [
     ".",
     "crates/core",
+    "crates/agent",
 ]
 resolver = "2"
 
@@ -23,6 +24,7 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 oxide-core = { path = "crates/core" }
+oxide-agent = { path = "crates/agent" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }

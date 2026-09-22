@@ -188,6 +188,32 @@ export const tauriCommands = {
     invoke('mcu_memory_write', { chip, address, data, probeSerial }),
   mcuDisassemble: (chip: string, address: number, instructionCount: number, probeSerial?: string): Promise<import('../types/oxide').DisassemblyInstruction[]> =>
     invoke('mcu_disassemble', { chip, address, instructionCount, probeSerial }),
+
+  // Agent Engine & Orchestrator (Blueprint Phases 1-4)
+  agentExecuteTask: (task: import('../types/agent').AgentTask): Promise<import('../types/agent').AgentResult> =>
+    invoke('agent_execute_task', { task }),
+  agentApprovePlan: (taskId: string): Promise<import('../types/agent').AgentResult> =>
+    invoke('agent_approve_plan', { taskId }),
+  agentRejectPlan: (taskId: string, feedback?: string): Promise<import('../types/agent').AgentResult> =>
+    invoke('agent_reject_plan', { taskId, feedback }),
+  agentSpawnParallel: (task: import('../types/agent').AgentTask, runtime?: 'InProcess' | 'DockerContainer' | 'SSHRemote'): Promise<string> =>
+    invoke('agent_spawn_parallel', { task, runtime }),
+  agentListParallel: (): Promise<import('../types/agent').ParallelAgentInfo[]> =>
+    invoke('agent_list_parallel'),
+  agentCancelParallel: (agentId: string): Promise<boolean> =>
+    invoke('agent_cancel_parallel', { agentId }),
+  agentGetEvents: (taskId: string, afterTimestampMs?: number): Promise<import('../types/agent').AgentEvent[]> =>
+    invoke('agent_get_events', { taskId, afterTimestampMs }),
+  agentHealCompileErrors: (workspacePath: string, maxAttempts?: number): Promise<import('../types/agent').AppliedFix[]> =>
+    invoke('agent_heal_compile_errors', { workspacePath, maxAttempts }),
+  agentEmbeddedDiagnoseFault: (faultStatusRegister: string, registers: Record<string, string>): Promise<import('../types/agent').HardFaultDiagnosis> =>
+    invoke('agent_embedded_diagnose_fault', { faultStatusRegister, registers }),
+  agentGenerateHalDriver: (chip: string, peripheral: string, features: string[]): Promise<import('../types/agent').GeneratedHalDriver> =>
+    invoke('agent_generate_hal_driver', { chip, peripheral, features }),
+  agentTemporalFindCommit: (workspacePath: string, testCommand: string, goodCommit: string, badCommit: string): Promise<import('../types/agent').BugIntroductionCandidate[]> =>
+    invoke('agent_temporal_find_commit', { workspacePath, testCommand, goodCommit, badCommit }),
+  agentTemporalModuleEvolution: (workspacePath: string, modulePath: string, limit?: number): Promise<import('../types/agent').EvolutionEvent[]> =>
+    invoke('agent_temporal_module_evolution', { workspacePath, modulePath, limit }),
 };
 
 export const tauriService = tauriCommands;

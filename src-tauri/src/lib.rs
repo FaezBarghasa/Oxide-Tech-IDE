@@ -1,4 +1,5 @@
 pub mod handlers {
+    pub mod agent_ops;
     pub mod cargo_ops;
     pub mod core_ops;
     pub mod file_ops;
@@ -27,7 +28,19 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(handlers::rag::ASTIndexState::new())
         .invoke_handler(tauri::generate_handler![
-            // ── Core / AI ────────────────────────────────────────────────────────────
+            // ── Core / AI / Agent Engine (Phase 1-4 Complete) ─────────────────────────
+            handlers::agent_ops::agent_execute_task,
+            handlers::agent_ops::agent_approve_plan,
+            handlers::agent_ops::agent_reject_plan,
+            handlers::agent_ops::agent_spawn_parallel,
+            handlers::agent_ops::agent_list_parallel,
+            handlers::agent_ops::agent_cancel_parallel,
+            handlers::agent_ops::agent_get_events,
+            handlers::agent_ops::agent_heal_compile_errors,
+            handlers::agent_ops::agent_embedded_diagnose_fault,
+            handlers::agent_ops::agent_generate_hal_driver,
+            handlers::agent_ops::agent_temporal_find_commit,
+            handlers::agent_ops::agent_temporal_module_evolution,
             handlers::core_ops::discover_cuda_devices,
             handlers::core_ops::parse_source_symbols,
             handlers::core_ops::slice_differential_context,

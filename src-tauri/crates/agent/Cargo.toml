@@ -1,0 +1,23 @@
+[package]
+name = "oxide-agent"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "oxide_agent"
+path = "src/lib.rs"
+
+[dependencies]
+oxide-core = { path = "../core" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+regex = { workspace = true }
+futures-util = { workspace = true }
+async-recursion = "1.1.1"
+async-trait = "0.1"

@@ -48,3 +48,4 @@ export * from './orchestration/ForgeToolSynthesizer';
 export * from './orchestration/ClaudeParityBridge';
 export * from './orchestration/CortexCognitiveGraph';
 export * from './navigation/StairSymbolPalette';
+export * from './agent';

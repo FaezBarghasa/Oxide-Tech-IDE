@@ -2489,6 +2489,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "oxide-agent"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-recursion",
+ "async-trait",
+ "chrono",
+ "futures-util",
+ "oxide-core",
+ "regex",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "oxide-core"
 version = "0.1.0"
 dependencies = [
@@ -2520,6 +2539,7 @@ dependencies = [
  "chrono",
  "mimalloc",
  "notify",
+ "oxide-agent",
  "oxide-core",
  "quote",
  "regex",
